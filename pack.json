@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 2,
+  "id": "aws-saa",
+  "title": "AWS Solutions Architect Associate",
+  "description": "Practice for the AWS Certified Solutions Architect - Associate (SAA-C03) exam - secure, resilient, high-performing and cost-optimized architectures on AWS.",
+  "homeSubtitle": "Grind toward SAA-C03.",
+  "themeColor": "#ff9900",
+  "categories": [
+    {
+      "key": "secure",
+      "label": "Design Secure Architectures",
+      "shortLabel": "Secure",
+      "icon": "🔐",
+      "weight": 0.3
+    },
+    {
+      "key": "resilient",
+      "label": "Design Resilient Architectures",
+      "shortLabel": "Resilient",
+      "icon": "🛟",
+      "weight": 0.26
+    },
+    {
+      "key": "high-performing",
+      "label": "Design High-Performing Architectures",
+      "shortLabel": "High-Performing",
+      "icon": "⚡",
+      "weight": 0.24
+    },
+    {
+      "key": "cost-optimized",
+      "label": "Design Cost-Optimized Architectures",
+      "shortLabel": "Cost-Optimized",
+      "icon": "💰",
+      "weight": 0.2
+    }
+  ],
+  "levelsLabel": "Tier",
+  "levels": [
+    {
+      "key": "easy",
+      "label": "Easy"
+    },
+    {
+      "key": "hard",
+      "label": "Hard"
+    },
+    {
+      "key": "veryhard",
+      "label": "Very hard"
+    }
+  ],
+  "exam": {
+    "label": "SAA-C03 exam",
+    "passPct": 72,
+    "scaled": true,
+    "questionCount": 65,
+    "durationMinutes": 130
+  },
+  "games": {},
+  "sources": [
+    {
+      "label": "Original",
+      "name": "quizmill exam-style scenarios",
+      "blurb": "Scenario questions written for this pack in the official exam's style, each grounded in the public AWS documentation page named in its sourceRef.",
+      "url": "https://github.com/quizmill/pack-aws-saa"
+    },
+    {
+      "label": "AWS",
+      "name": "SAA-C03 exam guide",
+      "blurb": "Domains, weights and task statements follow the official AWS Certified Solutions Architect - Associate (SAA-C03) exam guide.",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html"
+    }
+  ]
+}
