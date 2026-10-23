@@ -53,7 +53,7 @@
       },
       {
         "key": "B",
-        "text": "Attach a service control policy that denies cloudtrail:StopLogging and cloudtrail:DeleteTrail to the organizational units of the member accounts"
+        "text": "Attach a service control policy to the member accounts' OUs that denies cloudtrail:StopLogging and cloudtrail:DeleteTrail"
       },
       {
         "key": "C",
@@ -174,7 +174,7 @@
       {
         "key": "B",
         "text": "Add a bucket policy that denies all S3 actions unless the aws:SourceIp condition matches the VPC's private CIDR range",
-        "explanation": "Requests through a VPC endpoint do not carry a public source IP that aws:SourceIp can match, so this denies the applications too."
+        "explanation": "The aws:SourceIp condition cannot be used for requests that reach S3 through a VPC endpoint, so this policy denies the applications too."
       },
       {
         "key": "C",
@@ -186,7 +186,7 @@
         "explanation": "Block Public Access stops public grants, but authenticated IAM principals on the internet can still reach the bucket."
       }
     ],
-    "explanation": "A bucket policy is evaluated for every request to the bucket, so a Deny with aws:SourceVpce not equal to the endpoint ID rejects anything that did not come through that endpoint, whoever sends it. An endpoint policy controls the VPC side only, aws:SourceIp cannot match requests that arrive through a VPC endpoint, and Block Public Access does not stop authenticated callers. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies-vpc-endpoint.html",
+    "explanation": "A bucket policy is evaluated for every request to the bucket, so a Deny with aws:SourceVpce not equal to the endpoint ID rejects anything that did not come through that endpoint, whoever sends it. An endpoint policy controls the VPC side only, aws:SourceIp cannot be used for requests that arrive through a VPC endpoint, and Block Public Access does not stop authenticated callers. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies-vpc-endpoint.html",
     "source": "original",
     "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies-vpc-endpoint.html",
     "reviewStatus": "draft",
@@ -248,7 +248,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Store the credentials in AWS Secrets Manager, turn on managed rotation every 30 days, and have the application read the secret at connection time"
+        "text": "Store the credentials in AWS Secrets Manager with rotation every 30 days and have the application read the secret as it connects"
       },
       {
         "key": "B",
@@ -782,7 +782,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Publish orders to an Amazon SNS topic with one Amazon SQS queue per system subscribed to it, and have each fleet poll its own queue"
+        "text": "Publish orders to an SNS topic, subscribe one SQS queue per system, and have each fleet poll its own queue"
       },
       {
         "key": "B",
@@ -832,7 +832,7 @@
       },
       {
         "key": "C",
-        "text": "Failover routing with the us-east-1 record as primary, associated with a health check, and the us-west-2 record as secondary"
+        "text": "Failover routing with a health-checked us-east-1 record as primary and the us-west-2 record as secondary"
       },
       {
         "key": "D",
@@ -867,7 +867,7 @@
       },
       {
         "key": "B",
-        "text": "Pilot light, replicating the data continuously to the second Region and starting the application servers only during recovery"
+        "text": "Pilot light, replicating data continuously to the second Region and starting application servers only on recovery"
       },
       {
         "key": "C",
@@ -1840,5 +1840,619 @@
       "scenario"
     ],
     "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d4-1",
+    "categoryKey": "cost-optimized",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A media company stores millions of objects in Amazon S3 Standard. Some objects are read heavily for weeks after upload and others are never read again, and no one can predict which. The company wants to lower storage costs automatically without retrieval fees or any impact on read latency.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the objects to S3 Standard-Infrequent Access with a lifecycle rule 30 days after upload",
+        "explanation": "Standard-IA charges a retrieval fee per GB, so objects that stay popular after 30 days can cost more than before."
+      },
+      {
+        "key": "B",
+        "text": "Move the objects to S3 One Zone-Infrequent Access with a lifecycle rule 30 days after upload",
+        "explanation": "One Zone-IA also charges per-GB retrieval fees and keeps data in a single Availability Zone."
+      },
+      {
+        "key": "C",
+        "text": "Move the objects to S3 Glacier Flexible Retrieval with a lifecycle rule 30 days after upload",
+        "explanation": "Glacier Flexible Retrieval objects must be restored before they can be read, taking minutes to hours."
+      },
+      {
+        "key": "D",
+        "text": "Move the objects to S3 Intelligent-Tiering and let it place each object by its access pattern"
+      }
+    ],
+    "explanation": "S3 Intelligent-Tiering monitors each object's access and moves it between frequent and infrequent access tiers automatically, with no retrieval fees and the same millisecond latency, for a small per-object monitoring charge. Standard-IA and One Zone-IA charge retrievals that hurt when guesses are wrong, and Glacier Flexible Retrieval needs restores. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-easy-d4-2",
+    "categoryKey": "cost-optimized",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company runs a steady compute workload 24 hours a day and expects to keep it for 3 years. During that time it plans to move from x86 to Graviton instance families, shift some capacity to another Region, and run part of the workload on AWS Fargate.\n\nWhich purchasing option gives the largest discount while allowing all of these changes?",
+    "options": [
+      {
+        "key": "A",
+        "text": "EC2 Instance Savings Plans for the current instance family in the current Region",
+        "explanation": "EC2 Instance Savings Plans are tied to one instance family in one Region, so the migration and the Region move fall outside them."
+      },
+      {
+        "key": "B",
+        "text": "Compute Savings Plans for a committed hourly spend"
+      },
+      {
+        "key": "C",
+        "text": "Convertible Reserved Instances for the current instance type",
+        "explanation": "Convertible RIs can be exchanged for other families, but they stay in their Region and never apply to Fargate."
+      },
+      {
+        "key": "D",
+        "text": "Spot Instances managed by an EC2 Fleet with diversified types",
+        "explanation": "Spot can be interrupted at any time, which suits flexible jobs, not a steady workload that must keep running."
+      }
+    ],
+    "explanation": "Compute Savings Plans apply a committed hourly spend to EC2 usage of any family, size, operating system or Region, and to Fargate and Lambda, so the discount follows the workload through all three changes. EC2 Instance Savings Plans and Convertible RIs are bound to a Region and do not cover Fargate, and Spot is interruptible. Read more: https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d4-3",
+    "categoryKey": "cost-optimized",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company runs nightly batch jobs that render video frames on Amazon EC2. Each job saves checkpoints to Amazon S3, so a job that is stopped can resume on another instance. The jobs can run at any time during the night and use several instance types.\n\nWhich purchasing option is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Spot Instances across several instance types and zones"
+      },
+      {
+        "key": "B",
+        "text": "On-Demand Instances with an On-Demand Capacity Reservation",
+        "explanation": "A Capacity Reservation guarantees capacity at the On-Demand price, the most expensive choice for interruptible work."
+      },
+      {
+        "key": "C",
+        "text": "Dedicated Hosts allocated for the nightly batch window",
+        "explanation": "Dedicated Hosts are for licensing or compliance needs and cost more than shared-tenancy instances."
+      },
+      {
+        "key": "D",
+        "text": "Standard Reserved Instances on a 1-year term",
+        "explanation": "Reserved Instances bill for every hour of the term, so instances used only at night pay for idle daytime hours."
+      }
+    ],
+    "explanation": "Spot Instances use spare EC2 capacity at a large discount from On-Demand and can be reclaimed with a two-minute warning, which checkpointed, flexible batch jobs tolerate well; spreading across types and zones reduces interruptions. Capacity Reservations and Dedicated Hosts cost more, and Reserved Instances charge around the clock. Read more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-easy-d4-4",
+    "categoryKey": "cost-optimized",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "Applications in private subnets upload several terabytes per day to Amazon S3 buckets in the same Region through a NAT gateway. The NAT gateway's data processing charges have become a large part of the bill.\n\nWhich change reduces this cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create an interface VPC endpoint for S3 and update the applications to use the endpoint's DNS name",
+        "explanation": "Interface endpoints charge by the hour and per GB processed, so they cost more than a gateway endpoint for this traffic."
+      },
+      {
+        "key": "B",
+        "text": "Replace the NAT gateway with a NAT instance on a small EC2 instance type in the public subnet",
+        "explanation": "A NAT instance avoids the per-GB charge but must carry terabytes a day, needs managing, and is a single point of failure."
+      },
+      {
+        "key": "C",
+        "text": "Create a gateway VPC endpoint for S3 and add it to the private subnets' route tables"
+      },
+      {
+        "key": "D",
+        "text": "Turn on S3 Transfer Acceleration for the buckets so the uploads leave through the nearest edge location",
+        "explanation": "Transfer Acceleration adds a per-GB charge and still sends the traffic out through the NAT gateway."
+      }
+    ],
+    "explanation": "A gateway endpoint for S3 adds a route that sends S3 traffic straight from the VPC to S3, bypassing the NAT gateway, and gateway endpoints carry no hourly or data processing charge. Interface endpoints are billed, a NAT instance trades cost for operational risk, and Transfer Acceleration adds cost. Read more: https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d4-5",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An application writes log files to Amazon S3. Logs are read often for 30 days, occasionally from day 30 to day 90, and after that only during audits, when they must be available within 12 hours. Logs must be kept for 7 years and then deleted.\n\nWhich lifecycle configuration is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "S3 Standard, then S3 Standard-IA at 30 days, then S3 Glacier Deep Archive at 90 days, and expire after 7 years"
+      },
+      {
+        "key": "B",
+        "text": "S3 Standard, then S3 Standard-IA at 30 days, then S3 Glacier Instant Retrieval at 90 days, and expire after 7 years",
+        "explanation": "Glacier Instant Retrieval gives millisecond access at a much higher storage price than Deep Archive, and audits allow 12 hours."
+      },
+      {
+        "key": "C",
+        "text": "S3 Standard, then S3 One Zone-IA at 30 days, then S3 Glacier Flexible Retrieval at 90 days, and expire after 7 years",
+        "explanation": "Glacier Flexible Retrieval costs more to store than Deep Archive and its faster restores are not needed for audits."
+      },
+      {
+        "key": "D",
+        "text": "S3 Intelligent-Tiering from upload, with no archive tiers enabled, and expire after 7 years",
+        "explanation": "Without archive tiers the oldest logs stay in the infrequent access tiers, far more expensive than Deep Archive."
+      }
+    ],
+    "explanation": "Standard-IA suits the occasional reads from day 30 to 90, and S3 Glacier Deep Archive is the lowest-cost storage class, with standard retrievals completing within 12 hours, which meets the audit requirement for the remaining years before expiration. Instant Retrieval and Flexible Retrieval cost more than the audit window requires, and Intelligent-Tiering without archive tiers never gets that low. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d4-6",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An internal tool uses a MySQL-compatible database that is busy for a few hours a day at unpredictable times and idle the rest of the time, including whole weekends. It currently runs on a provisioned Amazon Aurora MySQL instance sized for its peak. The company wants to stop paying for idle compute with minimal operational effort.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Buy a 1-year Reserved Instance for the current Aurora instance class to lower its hourly price",
+        "explanation": "A Reserved Instance lowers the rate but still bills every hour, including all the idle ones."
+      },
+      {
+        "key": "B",
+        "text": "Migrate to Amazon RDS for MySQL and add a Lambda function that stops the instance when it has been idle for an hour",
+        "explanation": "Someone has to own the idle detection and the start-up path, and a stopped RDS instance restarts itself after 7 days."
+      },
+      {
+        "key": "C",
+        "text": "Move the database to Amazon DynamoDB with on-demand capacity so it is billed only per request",
+        "explanation": "DynamoDB is not MySQL-compatible, so the tool would need rewriting."
+      },
+      {
+        "key": "D",
+        "text": "Move the cluster to Aurora Serverless v2 with a minimum capacity of 0 ACUs so it pauses when idle"
+      }
+    ],
+    "explanation": "Aurora Serverless v2 scales capacity with demand, and with a minimum of 0 ACUs it pauses automatically after a period without connections and resumes on the next one, so idle hours cost only storage. A Reserved Instance still bills idle time, a stop-start function is home-made automation, and DynamoDB is not MySQL. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2-auto-pause.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2-auto-pause.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-7",
+    "categoryKey": "cost-optimized",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A DynamoDB table in on-demand capacity mode serves a mature application. Its traffic has been nearly flat at about 4,000 reads and 1,000 writes per second, around the clock, for a year, and the table holds 200 GB that is read constantly. The company wants to cut the table's cost significantly for the next 3 years.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Switch the table to provisioned capacity sized to the steady load and buy DynamoDB reserved capacity for it"
+      },
+      {
+        "key": "B",
+        "text": "Keep on-demand mode and switch the table to the DynamoDB Standard-Infrequent Access table class",
+        "explanation": "Standard-IA lowers storage price but raises the per-request price, which is the wrong trade for a table read constantly."
+      },
+      {
+        "key": "C",
+        "text": "Keep on-demand mode and put a DynamoDB Accelerator (DAX) cluster in front of the table for the reads",
+        "explanation": "DAX adds node costs, and it only saves money when most reads hit the same cached items."
+      },
+      {
+        "key": "D",
+        "text": "Switch the table to provisioned capacity with auto scaling that has a wide range and no reserved capacity",
+        "explanation": "Provisioned capacity already beats on-demand for flat traffic, but without a reservation the 3-year commitment brings no discount."
+      }
+    ],
+    "explanation": "For flat, predictable traffic, provisioned capacity costs less than paying per request, and reserved capacity adds a further discount for committing to a level of throughput for one or three years. The Standard-IA table class suits tables dominated by storage rather than throughput, DAX adds cost unless reads are highly repetitive, and provisioned capacity without a reservation leaves the long-term discount unused. Read more: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d4-8",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A small company runs a thumbnail service on an On-Demand m5.large instance that runs all the time. Users upload about 200 images a day to an Amazon S3 bucket, and each thumbnail takes about 3 seconds to generate. The instance is idle more than 99% of the time.\n\nWhich solution is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the service to a t3.micro On-Demand instance that runs all the time and polls the bucket for new images",
+        "explanation": "A smaller instance is cheaper, but it still bills every hour of the day for a few minutes of daily work."
+      },
+      {
+        "key": "B",
+        "text": "Run the service as an AWS Lambda function invoked by S3 event notifications when images are uploaded"
+      },
+      {
+        "key": "C",
+        "text": "Move the service to a Spot Instance that runs all the time and is replaced automatically when interrupted",
+        "explanation": "Spot lowers the hourly price, but it still bills for an always-on instance that is almost always idle."
+      },
+      {
+        "key": "D",
+        "text": "Run the service as an Amazon ECS service on AWS Fargate with one task that runs all the time",
+        "explanation": "An always-running Fargate task bills for its vCPU and memory every second, idle or not."
+      }
+    ],
+    "explanation": "Lambda bills only for invocations and compute time, so 200 three-second runs a day cost a tiny amount, and S3 event notifications invoke the function directly with nothing to poll. Every option that keeps a server or task running pays for idle time, however small or discounted it is. Read more: https://docs.aws.amazon.com/lambda/latest/dg/with-s3.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/lambda/latest/dg/with-s3.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d4-9",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A software company distributes installers from an Amazon S3 bucket to the public through direct S3 URLs. Anonymous users around the world download the same few files many times, and data transfer out from S3 is now the largest item on the bill.\n\nWhich solution reduces data transfer costs the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on Requester Pays for the bucket so the people downloading the installers pay for the transfer",
+        "explanation": "Requester Pays works only for authenticated AWS requesters, so anonymous public downloads would be refused."
+      },
+      {
+        "key": "B",
+        "text": "Turn on S3 Transfer Acceleration for the bucket and publish the accelerated download URLs instead",
+        "explanation": "Transfer Acceleration charges more per GB, on top of the normal transfer price."
+      },
+      {
+        "key": "C",
+        "text": "Serve the files through an Amazon CloudFront distribution with the bucket as its origin"
+      },
+      {
+        "key": "D",
+        "text": "Move the bucket to the AWS Region with the lowest S3 storage price and update the download links",
+        "explanation": "Storage price is not the problem; every download still pays S3 data transfer out from whichever Region it is in."
+      }
+    ],
+    "explanation": "CloudFront serves repeat downloads from its edge caches, so most requests never reach the bucket, and on the CloudFront pricing page transfer from AWS origins such as S3 to CloudFront is free, with transfer out to viewers generally priced below S3's. Requester Pays refuses anonymous access, Transfer Acceleration adds charges, and moving Regions does not change transfer out. Read more: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ConfiguringCaching.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ConfiguringCaching.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d4-10",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A development environment runs 40 On-Demand EC2 instances with gp2 EBS volumes. Developers use it only from 08:00 to 18:00 on weekdays, and the instances are stateless apart from their EBS volumes. The company wants to cut the environment's cost without affecting developers during working hours.\n\nWhich TWO actions together meet these requirements? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Stop the instances outside working hours on a schedule, for example with the Instance Scheduler on AWS solution"
+      },
+      {
+        "key": "B",
+        "text": "Buy 3-year All Upfront Reserved Instances for the 40 development instances",
+        "explanation": "Reserved Instances bill for every hour of the term, and these instances are needed for only about 30% of the week."
+      },
+      {
+        "key": "C",
+        "text": "Migrate the gp2 volumes to gp3, which costs less per GB at the same baseline performance"
+      },
+      {
+        "key": "D",
+        "text": "Move the instances to Dedicated Instances so that they run on hardware reserved for the company",
+        "explanation": "Dedicated Instances carry a higher price than shared tenancy and do nothing to reduce idle hours."
+      },
+      {
+        "key": "E",
+        "text": "Migrate the gp2 volumes to io2 so that the instances start faster each morning after being stopped",
+        "explanation": "io2 volumes cost more per GB and bill for provisioned IOPS, raising cost rather than lowering it."
+      }
+    ],
+    "explanation": "Stopped instances do not bill for compute, so stopping them for nights and weekends removes about 70% of instance hours, and gp3 is priced lower per GB than gp2 while giving a 3,000 IOPS baseline that can be changed in place. Reserved Instances bill around the clock, Dedicated Instances cost more, and io2 is a premium volume type. Read more: https://docs.aws.amazon.com/solutions/latest/instance-scheduler-on-aws/solution-overview.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/solutions/latest/instance-scheduler-on-aws/solution-overview.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "A",
+      "C"
+    ]
+  },
+  {
+    "id": "aws-saa-hard-d4-11",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company stores 20 TB of project files on an Amazon EFS Regional file system used by Linux application servers. Most files are not opened again after 30 days, but when one is, the application must read it through the same mount path. The data must stay replicated across Availability Zones.\n\nWhich solution reduces storage cost with the LEAST change to the application?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Recreate the file system as an EFS One Zone file system and copy the files across with AWS DataSync",
+        "explanation": "One Zone storage is cheaper, but it keeps data in a single Availability Zone, which breaks the replication requirement."
+      },
+      {
+        "key": "B",
+        "text": "Set an EFS lifecycle policy that moves files to Infrequent Access after 30 days without access"
+      },
+      {
+        "key": "C",
+        "text": "Move files older than 30 days to an S3 bucket with a nightly script and change the application to read them from S3",
+        "explanation": "S3 storage is cheaper, but the application would need changes to read old files from a different place."
+      },
+      {
+        "key": "D",
+        "text": "Switch the file system from Elastic throughput to Provisioned throughput set to the average load",
+        "explanation": "Throughput mode changes what you pay for throughput, not the per-GB price of storing 20 TB."
+      }
+    ],
+    "explanation": "EFS lifecycle management moves files that have not been accessed for a set period into the lower-cost Infrequent Access storage class, still Regional and multi-AZ, and the files stay at the same paths. One Zone gives up multi-AZ replication, moving files to S3 changes the application, and throughput settings do not change storage price. Read more: https://docs.aws.amazon.com/efs/latest/ug/lifecycle-management-efs.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/efs/latest/ug/lifecycle-management-efs.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-12",
+    "categoryKey": "cost-optimized",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A stateless web application runs in an Auto Scaling group. It needs at least 10 instances at all times, and unpredictable peaks push it to 40 instances for a few hours several times a week. The application tolerates individual instances being replaced. The company wants the lowest cost without risking the 10-instance baseline.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Use only Spot Instances across several instance types, with a minimum group size of 10",
+        "explanation": "If Spot capacity is reclaimed, nothing guarantees the 10-instance baseline the application needs."
+      },
+      {
+        "key": "B",
+        "text": "Buy Reserved Instances for 40 instances so that every peak is covered at the discounted rate",
+        "explanation": "Reserving for the peak pays for 30 instances that sit idle most of the week."
+      },
+      {
+        "key": "C",
+        "text": "Use a mixed instances policy with an On-Demand base of 10 covered by a Savings Plan and Spot above the base"
+      },
+      {
+        "key": "D",
+        "text": "Use On-Demand Instances only, with scheduled actions that raise capacity to 40 on the busiest weekdays",
+        "explanation": "The peaks are unpredictable, so schedules miss some and over-provision others, all at the On-Demand price."
+      }
+    ],
+    "explanation": "A mixed instances policy can keep a base capacity of On-Demand Instances, here 10 discounted by a Savings Plan commitment, and fill everything above it with Spot Instances across several types, so the baseline is safe and peaks are cheap. All-Spot risks the baseline, reserving for the peak wastes most of it, and schedules do not fit unpredictable peaks. Read more: https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-13",
+    "categoryKey": "cost-optimized",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "An Amazon Aurora PostgreSQL cluster runs an I/O-heavy order processing workload. Cost reports show that storage I/O requests are about 40% of the cluster's monthly Aurora charges, and the I/O volume is expected to grow. The company wants to lower and stabilize the cluster's cost without changing the application.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Switch the cluster's storage configuration from Aurora Standard to Aurora I/O-Optimized"
+      },
+      {
+        "key": "B",
+        "text": "Convert the cluster's instances to Aurora Serverless v2 so that capacity follows the workload",
+        "explanation": "Serverless v2 changes how compute is billed; under Aurora Standard the I/O requests are still charged."
+      },
+      {
+        "key": "C",
+        "text": "Add Aurora Replicas and move the order queries to the reader endpoint to spread the I/O across instances",
+        "explanation": "Replicas share the same cluster volume, so the I/O is still billed, and the replicas add instance cost."
+      },
+      {
+        "key": "D",
+        "text": "Change the cluster volume to Provisioned IOPS storage so that I/O is billed at a fixed provisioned rate",
+        "explanation": "Aurora storage is not provisioned that way; Provisioned IOPS volumes belong to RDS instances, not Aurora clusters."
+      }
+    ],
+    "explanation": "Aurora I/O-Optimized charges nothing for read and write I/O in exchange for higher instance and storage prices, and AWS recommends it when I/O exceeds about 25% of Aurora spend, which makes cost both lower and predictable as I/O grows. Serverless v2 and replicas leave I/O billed, and Aurora has no Provisioned IOPS volume to choose. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-14",
+    "categoryKey": "cost-optimized",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "Amazon ECS tasks on Amazon EC2 instances in private subnets pull large container images from Amazon ECR and write heavily to Amazon DynamoDB, all in the same Region. All of this traffic goes through a NAT gateway, and its data processing charges are high. The company wants the largest saving for the least ongoing cost.\n\nWhich TWO actions together meet these requirements? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create a gateway VPC endpoint for DynamoDB and add it to the private subnets' route tables"
+      },
+      {
+        "key": "B",
+        "text": "Create an interface VPC endpoint for DynamoDB in each private subnet's Availability Zone",
+        "explanation": "DynamoDB interface endpoints bill by the hour and per GB, where a gateway endpoint carries the same traffic at no charge."
+      },
+      {
+        "key": "C",
+        "text": "Add a NAT gateway in each Availability Zone so that tasks stop sending traffic across zones",
+        "explanation": "Per-zone NAT gateways cut cross-zone transfer but still charge data processing on every gigabyte, and add hourly charges."
+      },
+      {
+        "key": "D",
+        "text": "Create a gateway VPC endpoint for S3 and add it to the private subnets' route tables"
+      },
+      {
+        "key": "E",
+        "text": "Add a route from the private subnets to the internet gateway so that the tasks bypass the NAT gateway",
+        "explanation": "Instances without public IPs cannot use an internet gateway, and giving them public IPs would expose the private tier."
+      }
+    ],
+    "explanation": "Gateway endpoints for DynamoDB and S3 are free and take that traffic off the NAT gateway. ECR stores image layers in Amazon S3, so the bulk of an image pull goes through the S3 gateway endpoint (the much smaller ECR API calls still need the NAT gateway or ECR interface endpoints). DynamoDB interface endpoints cost money, extra NAT gateways still process every gigabyte, and an internet gateway route makes the tier public. Read more: https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "A",
+      "D"
+    ]
+  },
+  {
+    "id": "aws-saa-hard-d4-15",
+    "categoryKey": "cost-optimized",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company runs stateless queue workers as Amazon ECS tasks on AWS Fargate. The workers pull jobs from an SQS queue, and a job that is interrupted simply returns to the queue and is retried. The company wants the lowest compute cost for these tasks and does not want to manage EC2 instances.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Buy a Compute Savings Plan that covers the workers' steady Fargate usage",
+        "explanation": "Savings Plans discount Fargate, but less than Fargate Spot does for work that can be interrupted."
+      },
+      {
+        "key": "B",
+        "text": "Move the tasks to the EC2 launch type on Reserved Instances sized to the workers",
+        "explanation": "This brings back the EC2 instance management the company wants to avoid."
+      },
+      {
+        "key": "C",
+        "text": "Run the workers as AWS Lambda functions triggered by the SQS queue",
+        "explanation": "Lambda caps each run at 15 minutes and bills per GB-second, which is not cheaper for steady, long-running workers."
+      },
+      {
+        "key": "D",
+        "text": "Run the tasks with the FARGATE_SPOT capacity provider in the ECS service"
+      }
+    ],
+    "explanation": "Fargate Spot runs tasks on spare capacity at a steep discount from the Fargate price, with a two-minute warning before a task is stopped, which interruption-tolerant queue workers handle by returning the job to the queue. A Savings Plan gives a smaller discount, the EC2 launch type means managing instances, and Lambda has a 15-minute limit and no cost advantage for steady work. Read more: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
   }
 ]
