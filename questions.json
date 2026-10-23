@@ -1,0 +1,616 @@
+[
+  {
+    "id": "aws-saa-easy-d1-1",
+    "categoryKey": "secure",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A reporting application runs on Amazon EC2 in account A. It must read objects from an Amazon S3 bucket that belongs to account B. The security team does not allow long-term access keys in either account, and the data must not be copied out of account B.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create an IAM user in account B with s3:GetObject on the bucket and store its access keys in AWS Secrets Manager in account A",
+        "explanation": "An IAM user's access keys are long-term credentials; keeping them in Secrets Manager hides them but does not remove them."
+      },
+      {
+        "key": "B",
+        "text": "Configure S3 Same-Region Replication from the bucket in account B to a new bucket in account A that the application can read",
+        "explanation": "Replication copies every object into account A, which the requirements forbid."
+      },
+      {
+        "key": "C",
+        "text": "Create an IAM role in account B that trusts account A and allows s3:GetObject, and have the application assume it through AWS STS"
+      },
+      {
+        "key": "D",
+        "text": "Share the bucket with account A through AWS Resource Access Manager and grant the EC2 instance profile read access to it",
+        "explanation": "AWS RAM does not share S3 general purpose buckets; cross-account bucket access is granted with a bucket policy or a role."
+      }
+    ],
+    "explanation": "A role in the bucket's account whose trust policy names account A lets the application call sts:AssumeRole and receive temporary credentials that expire on their own, so no access keys exist anywhere and the objects stay in account B. Access keys in a secret are still long-term credentials, replication copies the data, and RAM is not how S3 buckets are shared. Read more: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_aws-accounts.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_aws-accounts.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-easy-d1-2",
+    "categoryKey": "secure",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company runs 30 AWS accounts in AWS Organizations. The security team must make sure that nobody in any member account, including users with the AdministratorAccess policy, can stop or delete the organization's AWS CloudTrail trails.\n\nWhich solution meets this requirement?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Attach a permissions boundary that denies cloudtrail:StopLogging and cloudtrail:DeleteTrail to every IAM role in the member accounts",
+        "explanation": "Administrators can create new roles without the boundary or remove it, so a boundary on existing roles does not bind them."
+      },
+      {
+        "key": "B",
+        "text": "Attach a service control policy that denies cloudtrail:StopLogging and cloudtrail:DeleteTrail to the organizational units of the member accounts"
+      },
+      {
+        "key": "C",
+        "text": "Deploy the AWS Config managed rule cloudtrail-enabled to every account with an automatic remediation that turns logging back on",
+        "explanation": "AWS Config evaluates after the change happens; logging is off until remediation runs, so it detects and repairs rather than prevents."
+      },
+      {
+        "key": "D",
+        "text": "Attach an IAM policy that denies the CloudTrail stop and delete actions to the administrators' IAM group in each member account",
+        "explanation": "Anyone with AdministratorAccess can detach a policy from their own group, so the deny does not hold against them."
+      }
+    ],
+    "explanation": "A service control policy sets the maximum permissions for every principal in the accounts it applies to, including administrators and the root user of a member account, and nothing inside the account can override it. A permissions boundary or a group policy can be removed by the very administrators they target, and AWS Config only detects and repairs a trail after it has been stopped. Read more: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d1-3",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company has 40 AWS accounts in AWS Organizations and uses a SAML 2.0 identity provider for its workforce. Employees must sign in to the AWS Management Console and CLI of the accounts they work in with their corporate credentials, and the security team wants to define each job function's permissions once and assign them to groups across accounts.\n\nWhich solution meets these requirements with the LEAST operational overhead?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create a SAML identity provider and matching IAM roles in each of the 40 accounts, and map the corporate groups to those roles in the IdP",
+        "explanation": "This federates correctly but means building and keeping 40 copies of every role and every mapping in step by hand."
+      },
+      {
+        "key": "B",
+        "text": "Create an Amazon Cognito user pool federated with the corporate IdP and an identity pool that issues AWS credentials for each account",
+        "explanation": "Cognito is built for application end users; it does not give a workforce console sign-in across an organization's accounts."
+      },
+      {
+        "key": "C",
+        "text": "Create IAM users in a central account with the corporate user names and let them assume roles in each member account",
+        "explanation": "IAM users bring separate passwords instead of corporate credentials, and the cross-account roles still have to be built per account."
+      },
+      {
+        "key": "D",
+        "text": "Enable IAM Identity Center with the corporate IdP as its identity source, define permission sets, and assign groups to accounts"
+      }
+    ],
+    "explanation": "IAM Identity Center connects once to the external SAML IdP, and a permission set is defined once and provisioned as roles into every account a group is assigned to, with a single portal for console and CLI access. A per-account SAML setup works but multiplies the roles and mappings by 40, Cognito targets customer-facing apps, and IAM users do not use corporate credentials. Read more: https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d1-4",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A public web application runs behind an Application Load Balancer. Logs show SQL injection attempts in query strings and bursts of thousands of HTTP requests per minute from a handful of IP addresses. The company wants to block both at the edge of the application without changing the application code.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Associate an AWS WAF web ACL with the load balancer that uses the SQL database managed rule group and a rate-based rule"
+      },
+      {
+        "key": "B",
+        "text": "Subscribe to AWS Shield Advanced and add the load balancer as a protected resource so the AWS response team filters the traffic",
+        "explanation": "Shield Advanced protects against DDoS events; inspecting query strings for SQL injection needs AWS WAF rules."
+      },
+      {
+        "key": "C",
+        "text": "Enable Amazon GuardDuty in the account and configure it to block the source IP addresses of malicious requests it finds",
+        "explanation": "GuardDuty produces findings; it does not block requests at the load balancer on its own."
+      },
+      {
+        "key": "D",
+        "text": "Tighten the load balancer's security group to allow HTTPS only and add network ACL deny rules for the offending addresses",
+        "explanation": "Security groups and NACLs work on IPs and ports; they cannot see SQL in a query string, and a hand-kept deny list lags new addresses."
+      }
+    ],
+    "explanation": "AWS WAF attaches directly to an ALB and inspects each HTTP request: the AWS managed SQL database rule group matches SQL injection patterns, and a rate-based rule blocks any IP that exceeds a request count in the evaluation window. Shield Advanced is DDoS protection that relies on WAF for request inspection, GuardDuty only reports, and security groups and NACLs cannot read request content. Read more: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d1-5",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "Applications in a VPC's private subnets read and write an Amazon S3 bucket through a gateway VPC endpoint. A new security requirement says the bucket must refuse every request that does not arrive through that specific endpoint, including requests from administrators on the internet.\n\nWhich change meets this requirement?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Attach an endpoint policy to the gateway endpoint that allows access only to this bucket and denies every other bucket",
+        "explanation": "An endpoint policy limits what traffic through the endpoint may reach; it does nothing to requests that reach the bucket by another path."
+      },
+      {
+        "key": "B",
+        "text": "Add a bucket policy that denies all S3 actions unless the aws:SourceIp condition matches the VPC's private CIDR range",
+        "explanation": "Requests through a VPC endpoint do not carry a public source IP that aws:SourceIp can match, so this denies the applications too."
+      },
+      {
+        "key": "C",
+        "text": "Add a bucket policy that denies all S3 actions unless the aws:SourceVpce condition key equals the gateway endpoint's ID"
+      },
+      {
+        "key": "D",
+        "text": "Enable S3 Block Public Access on the bucket and remove the internet gateway route from the VPC's public subnets",
+        "explanation": "Block Public Access stops public grants, but authenticated IAM principals on the internet can still reach the bucket."
+      }
+    ],
+    "explanation": "A bucket policy is evaluated for every request to the bucket, so a Deny with aws:SourceVpce not equal to the endpoint ID rejects anything that did not come through that endpoint, whoever sends it. An endpoint policy controls the VPC side only, aws:SourceIp cannot match requests that arrive through a VPC endpoint, and Block Public Access does not stop authenticated callers. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies-vpc-endpoint.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/example-bucket-policies-vpc-endpoint.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d1-6",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company stores regulated documents in Amazon S3. Auditors require encryption at rest where the company controls who may use the key through its own key policy, can disable the key at any time, and can see every use of the key in AWS CloudTrail. The team does not want to manage key material or encryption code.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Use server-side encryption with Amazon S3 managed keys (SSE-S3) and a bucket policy that rejects unencrypted uploads",
+        "explanation": "SSE-S3 keys are managed entirely by S3; there is no key policy to edit, no way to disable the key, and no per-use CloudTrail record."
+      },
+      {
+        "key": "B",
+        "text": "Use server-side encryption with the AWS managed KMS key aws/s3 and set it as the bucket's default encryption",
+        "explanation": "AWS managed keys log their use, but their key policy cannot be changed and the key cannot be disabled by the customer."
+      },
+      {
+        "key": "C",
+        "text": "Use server-side encryption with customer-provided keys (SSE-C) and send the key with each request from the application",
+        "explanation": "With SSE-C the company generates, stores and supplies every key on every request, which is the key management the team wants to avoid."
+      },
+      {
+        "key": "D",
+        "text": "Use server-side encryption with a customer managed AWS KMS key (SSE-KMS) and set it as the bucket's default encryption"
+      }
+    ],
+    "explanation": "A customer managed KMS key has a key policy the company writes, can be disabled or scheduled for deletion, and every encrypt and decrypt call S3 makes with it is logged in CloudTrail, while KMS holds the key material. SSE-S3 offers no key policy, the aws/s3 key's policy is fixed, and SSE-C pushes key handling onto the application. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d1-7",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An application on Amazon EC2 connects to an Amazon RDS for PostgreSQL database with a user name and password that is currently in a configuration file. A third-party library in the application accepts only a static user name and password. The security team requires the password to be changed automatically every 30 days without a code release.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Store the credentials in AWS Secrets Manager, turn on managed rotation every 30 days, and have the application read the secret at connection time"
+      },
+      {
+        "key": "B",
+        "text": "Store the password as an AWS Systems Manager Parameter Store SecureString and turn on automatic rotation of its AWS KMS key",
+        "explanation": "Rotating the KMS key changes the key that encrypts the parameter, not the database password stored in it."
+      },
+      {
+        "key": "C",
+        "text": "Enable IAM database authentication on the instance and have the application request a new authentication token for each connection",
+        "explanation": "IAM auth replaces the password with a short-lived token the code must generate per connection, which the library cannot do."
+      },
+      {
+        "key": "D",
+        "text": "Enable automatic rotation on the KMS key that encrypts the RDS storage and set the rotation period to 30 days",
+        "explanation": "Storage key rotation changes the encryption key for data at rest; the database user's password stays the same."
+      }
+    ],
+    "explanation": "Secrets Manager can rotate an RDS secret on a schedule, updating the database password and the secret together, and the application keeps passing a plain user name and password that it fetches from the secret. KMS key rotation changes encryption keys, not database passwords, and IAM database authentication needs code that generates a token for every connection. Read more: https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-veryhard-d1-8",
+    "categoryKey": "secure",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A financial services company must keep trade records in Amazon S3 for 7 years in a write-once-read-many (WORM) form. Regulators require that no user, including the account's root user, can overwrite or delete a record before its retention period ends, and that the retention period cannot be shortened.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Enable S3 Object Lock on the bucket and apply a 7-year default retention period in governance mode",
+        "explanation": "In governance mode a user with s3:BypassGovernanceRetention can delete objects or shorten the retention, so it is not tamper-proof."
+      },
+      {
+        "key": "B",
+        "text": "Enable S3 Object Lock on the bucket and apply a 7-year default retention period in compliance mode"
+      },
+      {
+        "key": "C",
+        "text": "Enable S3 Versioning with MFA delete and a lifecycle rule that moves objects to S3 Glacier Deep Archive after 30 days",
+        "explanation": "MFA delete adds a step to permanent deletes but the root user can still delete versions or turn MFA delete off."
+      },
+      {
+        "key": "D",
+        "text": "Enable S3 Object Lock and place a legal hold on each object as it is written, removing the hold after 7 years",
+        "explanation": "A legal hold has no retention period and any user with s3:PutObjectLegalHold can remove it early."
+      }
+    ],
+    "explanation": "In compliance mode an object version cannot be overwritten or deleted by any user, including the root user, until its retention date, and the retention mode and period cannot be shortened. Governance mode can be bypassed with a special permission, a legal hold can be lifted by anyone allowed to set it, and MFA delete still leaves the root user able to delete. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d1-9",
+    "categoryKey": "secure",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company wants continuous monitoring of its AWS accounts for signs of compromise, such as EC2 instances communicating with known cryptocurrency-mining hosts or API calls from unusual locations, without deploying agents or managing log pipelines.\n\nWhich AWS service meets this requirement?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amazon Inspector, scanning EC2 instances and container images",
+        "explanation": "Inspector finds software vulnerabilities and network exposure; it does not watch for active malicious behaviour in API and network logs."
+      },
+      {
+        "key": "B",
+        "text": "Amazon Macie, analysing the data stored in the account",
+        "explanation": "Macie discovers sensitive data in S3 objects; it does not analyse network traffic or API activity for threats."
+      },
+      {
+        "key": "C",
+        "text": "Amazon GuardDuty, analysing the account's logs and activity"
+      },
+      {
+        "key": "D",
+        "text": "AWS Config, evaluating resources against managed rules",
+        "explanation": "AWS Config checks resource configurations against rules; it does not detect compromised instances or suspicious callers."
+      }
+    ],
+    "explanation": "GuardDuty is a managed threat detection service that reads CloudTrail events, VPC Flow Logs and DNS logs on its own, with no agents or pipelines, and raises findings such as cryptocurrency-mining traffic or unusual API activity. Inspector looks for vulnerabilities, Macie for sensitive data, and AWS Config for configuration drift. Read more: https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-easy-d1-10",
+    "categoryKey": "secure",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company has hundreds of Amazon S3 buckets created by different teams over several years. The compliance team must find which buckets contain personally identifiable information, such as passport numbers and credit card numbers, and get an ongoing report as new objects arrive.\n\nWhich AWS service meets this requirement?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amazon Macie with automated sensitive data discovery"
+      },
+      {
+        "key": "B",
+        "text": "Amazon GuardDuty with S3 Protection enabled",
+        "explanation": "S3 Protection watches API calls to buckets for suspicious access; it does not read object contents for personal data."
+      },
+      {
+        "key": "C",
+        "text": "Amazon Detective with the S3 data source enabled",
+        "explanation": "Detective helps investigate security findings after the fact; it does not classify what data objects contain."
+      },
+      {
+        "key": "D",
+        "text": "AWS Security Hub with the foundational best practices",
+        "explanation": "Security Hub checks bucket settings such as public access and encryption, not the data stored in the objects."
+      }
+    ],
+    "explanation": "Macie uses managed data identifiers to find sensitive data such as passport and credit card numbers inside S3 objects, and automated discovery keeps sampling buckets and reporting as data changes. GuardDuty, Detective and Security Hub look at activity, investigations and configuration, not at object contents. Read more: https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.3",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d1-11",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A three-tier application has an internet-facing Application Load Balancer in public subnets and application servers on Amazon EC2. The security team requires that the application servers can be reached only by the load balancer, never directly from the internet.\n\nWhich TWO configurations together meet this requirement? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Launch the application servers in private subnets whose route table has no route to an internet gateway"
+      },
+      {
+        "key": "B",
+        "text": "In the application servers' security group, add a deny rule for 0.0.0.0/0 above the rule that allows the application port",
+        "explanation": "Security groups support allow rules only; there is no deny rule to add, and their rules are not ordered."
+      },
+      {
+        "key": "C",
+        "text": "In the application servers' security group, allow the application port with the load balancer's security group as the source"
+      },
+      {
+        "key": "D",
+        "text": "In the application servers' security group, allow the application port from the load balancer's Elastic IP addresses",
+        "explanation": "An ALB has no Elastic IPs and its addresses change; it reaches targets from private IPs inside the VPC."
+      },
+      {
+        "key": "E",
+        "text": "Add network ACL rules on the application subnets that allow the application port from the load balancer's DNS name",
+        "explanation": "Network ACL rules accept CIDR blocks only, not DNS names, and an ALB's addresses change over time."
+      }
+    ],
+    "explanation": "Private subnets with no internet gateway route give the instances no inbound path from the internet, and a security group rule that references the ALB's security group admits traffic only from the load balancer's nodes, whatever their changing IPs. Security groups have no deny rules, ALBs have no Elastic IPs, and network ACLs cannot use DNS names. Read more: https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "A",
+      "C"
+    ]
+  },
+  {
+    "id": "aws-saa-veryhard-d1-12",
+    "categoryKey": "secure",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "Developers must be able to create IAM roles for the AWS Lambda functions they deploy. The security team is worried that a developer could create a role with more permissions than the developer has and use it to escalate privileges. Developers must stay self-service.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Attach a service control policy to the developers' account that denies iam:CreateRole and iam:PutRolePolicy for every principal",
+        "explanation": "This removes the developers' ability to create Lambda roles at all, which breaks the self-service requirement."
+      },
+      {
+        "key": "B",
+        "text": "Grant the developers the AWS managed PowerUserAccess policy, which allows all services except IAM user and group management",
+        "explanation": "PowerUserAccess does not let developers create roles, so they could not deploy their functions' roles themselves."
+      },
+      {
+        "key": "C",
+        "text": "Allow iam:CreateRole only when the iam:PermissionsBoundary condition names an approved boundary policy, and deny changes to that policy"
+      },
+      {
+        "key": "D",
+        "text": "Run IAM Access Analyzer policy validation on every role developers create and alert the security team about overly broad policies",
+        "explanation": "Policy validation reports problems after the role exists; it does not stop an over-privileged role from being created and used."
+      }
+    ],
+    "explanation": "A permissions boundary caps the effective permissions of any role it is attached to. Requiring a specific boundary on iam:CreateRole, and denying edits to or removal of that boundary, lets developers create roles freely while no role can exceed the boundary. An SCP deny or PowerUserAccess takes the ability away entirely, and Access Analyzer validation only reports. Read more: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.1",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d1-13",
+    "categoryKey": "secure",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company serves a static website from an Amazon S3 bucket through an Amazon CloudFront distribution. A security review found that users can also fetch objects straight from the bucket's URL. The company wants the bucket to stay private, with Block Public Access on, and serve objects only through this distribution.\n\nWhich TWO actions together meet these requirements? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create an origin access control (OAC) and attach it to the distribution's S3 bucket origin"
+      },
+      {
+        "key": "B",
+        "text": "Turn on S3 static website hosting and set the bucket's website endpoint as the distribution's custom origin",
+        "explanation": "A website endpoint only serves public objects and does not support origin access control, so the bucket would have to be public."
+      },
+      {
+        "key": "C",
+        "text": "Require CloudFront signed URLs on the distribution's default cache behavior for every object",
+        "explanation": "Signed URLs control which viewers may use the distribution; they do nothing to stop direct requests to the bucket."
+      },
+      {
+        "key": "D",
+        "text": "Add a bucket policy that allows s3:GetObject to the CloudFront service principal when AWS:SourceArn is the distribution ARN"
+      },
+      {
+        "key": "E",
+        "text": "Add a bucket policy that allows public s3:GetObject only when the Referer header carries a secret value set by CloudFront",
+        "explanation": "This needs Block Public Access off, and anyone who learns the header value can send it straight to the bucket."
+      }
+    ],
+    "explanation": "With OAC, CloudFront signs its requests to S3, and a bucket policy that allows the cloudfront.amazonaws.com principal only for this distribution's ARN lets those signed requests in while the bucket stays private behind Block Public Access. Website endpoints need public objects, signed URLs restrict viewers rather than the origin, and a Referer secret requires a public bucket. Read more: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "A",
+      "D"
+    ]
+  },
+  {
+    "id": "aws-saa-hard-d1-14",
+    "categoryKey": "secure",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company is moving its public web applications behind Application Load Balancers and wants HTTPS everywhere. Certificates last expired unnoticed and caused an outage, so the team wants TLS certificates that renew automatically with no manual steps after setup. The domain's DNS is hosted in Amazon Route 53.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Buy certificates from a third-party CA each year, import them into AWS Certificate Manager, and attach them to the load balancers",
+        "explanation": "ACM does not renew imported certificates; each one has to be reissued and reimported before it expires."
+      },
+      {
+        "key": "B",
+        "text": "Request public certificates in AWS Certificate Manager with DNS validation and attach them to the load balancers' HTTPS listeners"
+      },
+      {
+        "key": "C",
+        "text": "Request public certificates in AWS Certificate Manager with email validation and attach them to the load balancers' HTTPS listeners",
+        "explanation": "Email-validated certificates need a domain owner to act on validation emails, so renewal is not hands-free."
+      },
+      {
+        "key": "D",
+        "text": "Upload certificates to the IAM server certificate store and attach them to the load balancers' HTTPS listeners",
+        "explanation": "IAM server certificates are never renewed by AWS; someone has to upload a new certificate before each one expires."
+      }
+    ],
+    "explanation": "ACM renews its own public certificates automatically, and with DNS validation the CNAME record left in Route 53 lets ACM prove domain control again at renewal without anyone acting. Imported and IAM-stored certificates are never renewed by AWS, and email validation needs a person to respond. Read more: https://docs.aws.amazon.com/acm/latest/userguide/dns-validation.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/acm/latest/userguide/dns-validation.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-veryhard-d1-15",
+    "categoryKey": "secure",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A team must give a partner's AWS account a copy of an Amazon EBS snapshot. The snapshot is encrypted with the AWS managed key aws/ebs. The data must stay encrypted at every step, and the partner must be able to create volumes from the snapshot in its own account.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Modify the snapshot's permissions to add the partner's account ID, and have the partner create volumes with its own aws/ebs key",
+        "explanation": "Snapshots encrypted with an AWS managed key cannot be shared with another account at all."
+      },
+      {
+        "key": "B",
+        "text": "Edit the key policy of the aws/ebs key to allow the partner's account, then modify the snapshot permissions to add that account",
+        "explanation": "The key policy of an AWS managed key cannot be edited, so the partner can never be granted use of it."
+      },
+      {
+        "key": "C",
+        "text": "Copy the snapshot into an unencrypted snapshot, share that copy with the partner, and have the partner copy it with its own key",
+        "explanation": "A copy of an encrypted snapshot cannot be decrypted into plaintext, and the requirements forbid unencrypted data anyway."
+      },
+      {
+        "key": "D",
+        "text": "Copy the snapshot re-encrypted with a customer managed KMS key, allow the partner in that key's policy, and share the copy"
+      }
+    ],
+    "explanation": "Sharing an encrypted snapshot also requires sharing the KMS key that encrypts it. AWS managed keys cannot be shared, so the snapshot is copied and re-encrypted under a customer managed key, the key policy grants the partner account use of the key, and the copy's permissions add the partner, who can then copy it under its own key. An unencrypted copy is neither possible nor allowed. Read more: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-1",
+      "task-1.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  }
+]
