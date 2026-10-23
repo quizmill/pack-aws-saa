@@ -1,0 +1,177 @@
+[
+  {
+    "id": "iam-roles-and-sts",
+    "title": "IAM roles and temporary credentials (AWS STS)",
+    "body": "An IAM role is an identity with permissions but no long-term credentials. A principal that the role's trust policy names calls sts:AssumeRole and receives temporary credentials that expire on their own.\n\n- EC2 instances get a role through an instance profile; the SDK picks up rotating credentials from instance metadata.\n- Cross-account access: a role in the resource account trusts the other account, and that account grants sts:AssumeRole to the users or roles that may switch into it.\n- A third party that serves many customers should be required to pass an external ID (sts:ExternalId) to close the confused deputy gap.\n\nRead more: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html",
+    "commonMistakes": [
+      "Storing an IAM user's access keys in a secret or parameter: they are still long-term credentials.",
+      "Thinking a role has a member list like a group; users reach a role by assuming it.",
+      "Trusting a vendor's account without an external ID when the vendor acts for many customers."
+    ],
+    "tags": ["domain-1", "task-1.1"]
+  },
+  {
+    "id": "iam-policy-evaluation",
+    "title": "How AWS evaluates IAM policies",
+    "body": "AWS gathers every policy that applies to a request and decides in this order:\n\n1. An explicit Deny in any policy ends the evaluation with a deny.\n2. SCPs, RCPs, permissions boundaries and session policies act as filters: if any of them does not allow the action, the result is an implicit deny.\n3. An Allow in an identity-based or resource-based policy grants the action.\n4. Anything not allowed is implicitly denied.\n\nCross-account requests are evaluated in both accounts and must be allowed by both: the caller's identity policy (and its SCPs) and the resource policy.\n\nAttribute-based access control (ABAC) compares tags, for example aws:ResourceTag/project with ${aws:PrincipalTag/project}, so one policy scales as projects are added.\n\nRead more: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html",
+    "commonMistakes": [
+      "Assuming policy order or the breadth of an Allow can beat an explicit Deny.",
+      "Expecting a permissions boundary or SCP to grant permissions; they only limit them.",
+      "Forgetting that the caller's SCPs still apply when a resource policy allows a cross-account call."
+    ],
+    "tags": ["domain-1", "task-1.1"]
+  },
+  {
+    "id": "organizations-scps",
+    "title": "Service control policies in AWS Organizations",
+    "body": "A service control policy (SCP) sets the maximum permissions for IAM users and roles in the member accounts it is attached to, through the root, an OU or an account. Account administrators cannot detach it.\n\n- SCPs grant nothing; identity policies still have to allow the action.\n- SCPs do not affect the management account, nor service-linked roles.\n- Typical guardrails: deny leaving the organization, deny disabling CloudTrail or GuardDuty, deny requests outside approved Regions with aws:RequestedRegion while exempting global services through NotAction.\n\nAWS Control Tower builds a landing zone on Organizations with ready-made preventive (SCP) and detective (AWS Config) controls and an Account Factory.\n\nRead more: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "commonMistakes": [
+      "Expecting an SCP to restrict the management account.",
+      "Writing a Region-deny SCP without exempting IAM, CloudFront, Route 53 and other global services."
+    ],
+    "tags": ["domain-1", "task-1.1"]
+  },
+  {
+    "id": "iam-identity-center",
+    "title": "IAM Identity Center for workforce access",
+    "body": "IAM Identity Center gives the workforce one sign-in to many AWS accounts and applications. Its identity source can be the built-in directory, Active Directory, or an external SAML 2.0 identity provider with SCIM provisioning.\n\nAccess is defined once as permission sets and assigned to users or groups for chosen accounts; Identity Center creates the matching roles in each account, and users get temporary credentials.\n\nUse it for employees. For customers of an application, use Amazon Cognito.\n\nRead more: https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html",
+    "commonMistakes": [
+      "Creating IAM users in each account for people who already exist in the corporate directory.",
+      "Using Identity Center for an application's end customers."
+    ],
+    "tags": ["domain-1", "task-1.1"]
+  },
+  {
+    "id": "amazon-cognito",
+    "title": "Amazon Cognito user pools and identity pools",
+    "body": "Cognito has two parts that are easy to mix up:\n\n- A user pool is a user directory and sign-in service for an application's customers. It can federate social and SAML identity providers and issues JWTs. An Application Load Balancer can authenticate users against a user pool itself (authenticate-cognito action, HTTPS listeners only).\n- An identity pool exchanges a sign-in token for temporary AWS credentials of an IAM role, so a mobile or web app can call AWS services such as S3 directly. The policy variable ${cognito-identity.amazonaws.com:sub} scopes each user to their own prefix.\n\nRead more: https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html",
+    "commonMistakes": [
+      "Sending a user pool token straight to S3; it must first be exchanged for AWS credentials through an identity pool.",
+      "Putting an authenticate action on an HTTP listener."
+    ],
+    "tags": ["domain-1", "task-1.1", "task-1.2"]
+  },
+  {
+    "id": "security-groups-and-nacls",
+    "title": "Security groups and network ACLs",
+    "body": "- Security groups apply to network interfaces (instances, load balancers). They are stateful, so replies are allowed automatically. They have allow rules only, and a rule's source can be a CIDR, a prefix list or another security group.\n- Network ACLs apply to subnets. They are stateless, so return traffic needs its own rule. They have allow and deny rules, evaluated from the lowest number up, and match CIDRs only.\n\nUse security group references (for example, the ALB's security group as the source) to admit traffic from a tier whose IPs change. Use a network ACL deny, numbered below the matching allow, to block a specific range. Remember ephemeral ports (1024-65535) for return traffic through a custom network ACL.\n\nRead more: https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html",
+    "commonMistakes": [
+      "Trying to add a deny rule to a security group.",
+      "Numbering a network ACL deny after the allow it should override.",
+      "Forgetting outbound or inbound ephemeral ports on a custom network ACL."
+    ],
+    "tags": ["domain-1", "task-1.2"]
+  },
+  {
+    "id": "vpc-endpoints",
+    "title": "VPC endpoints and AWS PrivateLink",
+    "body": "VPC endpoints let resources in private subnets reach services without an internet gateway or NAT.\n\n- Gateway endpoints exist for Amazon S3 and DynamoDB only. They are route table targets and have no hourly charge.\n- Interface endpoints (AWS PrivateLink) place network interfaces in your subnets for most other AWS services. With private DNS enabled, the service's default hostname resolves to those private IPs, so code doesn't change.\n- Endpoint services: a provider fronts its own service with a Network Load Balancer and publishes it; consumers create interface endpoints. Traffic flows one way, only that service is exposed, and overlapping CIDRs don't matter.\n\nEndpoint policies and conditions such as aws:SourceVpce in a bucket policy restrict what goes through the endpoint.\n\nRead more: https://docs.aws.amazon.com/vpc/latest/privatelink/concepts.html",
+    "commonMistakes": [
+      "Looking for a gateway endpoint for a service other than S3 or DynamoDB.",
+      "Creating an interface endpoint with private DNS turned off and expecting default SDK endpoints to use it.",
+      "Using VPC peering where CIDRs overlap."
+    ],
+    "tags": ["domain-1", "task-1.2"]
+  },
+  {
+    "id": "waf-and-shield",
+    "title": "AWS WAF, AWS Shield and Firewall Manager",
+    "body": "- AWS WAF filters HTTP(S) requests at CloudFront, Application Load Balancers, API Gateway, AppSync and a few other resources. Web ACLs hold managed rule groups (SQL injection, known bad inputs), rate-based rules, IP sets and geographic match rules. It does not attach to EC2 instances or NAT gateways.\n- AWS Shield Standard protects every customer against common network and transport layer DDoS attacks at no extra charge.\n- AWS Shield Advanced adds, for the resources you protect, the Shield Response Team and cost protection for scaling caused by an attack.\n- AWS Firewall Manager applies WAF, Shield Advanced, security group and Network Firewall policies across an organization, including accounts and resources added later.\n\nRead more: https://docs.aws.amazon.com/waf/latest/developerguide/what-is-aws-waf.html",
+    "commonMistakes": [
+      "Associating a web ACL with an EC2 instance.",
+      "Expecting DDoS experts or cost credits from Shield Standard."
+    ],
+    "tags": ["domain-1", "task-1.2"]
+  },
+  {
+    "id": "network-firewalls",
+    "title": "Inspecting VPC traffic: Network Firewall, DNS Firewall, Gateway Load Balancer",
+    "body": "- AWS Network Firewall is a managed, stateful firewall. Its stateful rule groups can allow or deny by domain using TLS SNI or the HTTP Host header. It only sees traffic that route tables send through its firewall endpoints, on the way out and on the way back.\n- Route 53 Resolver DNS Firewall filters DNS queries sent to the Route 53 Resolver. A workload that uses another resolver or a hard-coded IP bypasses it.\n- Gateway Load Balancer runs third-party virtual appliances transparently. It distributes flows over GENEVE, health checks the appliances, and its endpoints are route table targets, so packets keep their original addresses.\n\nRead more: https://docs.aws.amazon.com/network-firewall/latest/developerguide/what-is-aws-network-firewall.html",
+    "commonMistakes": [
+      "Relying on DNS filtering alone against a compromised workload.",
+      "Pointing a route at a Network Load Balancer; it is not a valid route target."
+    ],
+    "tags": ["domain-1", "task-1.2"]
+  },
+  {
+    "id": "secrets-management",
+    "title": "Secrets Manager and Parameter Store",
+    "body": "Both store values encrypted with AWS KMS and control access with IAM.\n\n- AWS Secrets Manager is built for credentials. It rotates them on a schedule through managed or Lambda rotation (natively for Amazon RDS, Aurora, Redshift and DocumentDB), replicates secrets across Regions, and charges per secret and per API call.\n- AWS Systems Manager Parameter Store holds configuration and secrets as String, StringList or SecureString parameters in a path hierarchy. Standard parameters (up to 4 KB) have no additional charge; advanced parameters are larger and support policies, for a fee. It has no built-in rotation.\n\nChoose Secrets Manager when rotation is required, and Parameter Store for cheap, hierarchical configuration.\n\nRead more: https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html",
+    "commonMistakes": [
+      "Paying for Secrets Manager for plain configuration that never rotates.",
+      "Keeping database passwords in Parameter Store when the requirement is automatic rotation."
+    ],
+    "tags": ["domain-1", "task-1.2", "task-1.3"]
+  },
+  {
+    "id": "threat-detection",
+    "title": "AWS security services: who finds what",
+    "body": "- Amazon GuardDuty detects threats by analyzing CloudTrail, VPC Flow Logs, DNS logs and runtime events, for example an instance talking to a known command-and-control host.\n- Amazon Inspector scans EC2 instances, ECR images and Lambda functions for known software vulnerabilities (CVEs) and rescans when new CVEs are published.\n- Amazon Macie discovers sensitive data such as PII in S3 buckets.\n- AWS Security Hub CSPM aggregates findings from these services across accounts and Regions and runs best-practice checks such as AWS Foundational Security Best Practices.\n- Amazon Detective helps investigate the root cause of a finding.\n- AWS Config records resource configuration and evaluates it against rules.\n\nRead more: https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+    "commonMistakes": [
+      "Expecting GuardDuty to report vulnerable packages (that is Inspector).",
+      "Expecting Security Hub to scan for vulnerabilities itself rather than collect findings."
+    ],
+    "tags": ["domain-1", "task-1.2", "task-1.3"]
+  },
+  {
+    "id": "hybrid-connectivity",
+    "title": "Secure connections to a VPC: VPN and Direct Connect",
+    "body": "- AWS Site-to-Site VPN joins a network (with a customer gateway device) to a VPC over IPsec tunnels.\n- AWS Client VPN is a managed, OpenVPN-based service that lets individual users connect to a VPC from their devices.\n- AWS Direct Connect is a private physical link. It is not encrypted by default. To encrypt it, run a Site-to-Site VPN over the link (IPsec), or use MACsec on supported dedicated connections.\n\nRead more: https://docs.aws.amazon.com/directconnect/latest/UserGuide/encryption-in-transit.html",
+    "commonMistakes": [
+      "Treating a private Direct Connect circuit as encrypted.",
+      "Using Site-to-Site VPN for individual remote workers' laptops."
+    ],
+    "tags": ["domain-1", "task-1.2"]
+  },
+  {
+    "id": "aws-kms",
+    "title": "AWS KMS keys, key policies and rotation",
+    "body": "AWS KMS keys never leave KMS unencrypted; services use envelope encryption with data keys generated under a KMS key.\n\n- Customer managed keys give you the key policy, rotation and grants. AWS managed keys (aws/s3, aws/ebs) are rotated by AWS, but you cannot edit their policies or share them across accounts.\n- Every key has exactly one key policy. Cross-account use needs the key policy to allow the other account AND an IAM policy in that account to delegate to its roles.\n- Automatic rotation creates new key material on a schedule while the key ID stays the same; older material still decrypts older data.\n- Multi-Region keys share key ID and material across Regions, so data encrypted in one Region can be decrypted in another without a cross-Region call. The property is set when the key is created.\n- AWS CloudHSM gives single-tenant HSMs that you manage, for requirements that KMS's shared HSMs can't meet.\n\nRead more: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html",
+    "commonMistakes": [
+      "Granting another account in an IAM policy but not in the key policy (or the reverse).",
+      "Trying to share an encrypted resource that uses an AWS managed key across accounts.",
+      "Expecting to convert an existing single-Region key to multi-Region."
+    ],
+    "tags": ["domain-1", "task-1.3"]
+  },
+  {
+    "id": "s3-access-control",
+    "title": "Controlling access to Amazon S3",
+    "body": "- Bucket policies grant or deny access by principal and condition: aws:SecureTransport to require HTTPS, aws:SourceVpce to require a VPC endpoint, aws:PrincipalOrgID to admit a whole organization.\n- S3 Block Public Access overrides public grants at the bucket, account or organization level.\n- S3 Object Ownership set to bucket owner enforced disables ACLs, so the bucket owner owns every object and policies alone decide access. It is the default for new buckets.\n- Presigned URLs give time-limited access to a single object without an AWS identity.\n- CloudFront origin access control (OAC) keeps a bucket private behind a distribution.\n- Encryption at rest: SSE-S3 (default), SSE-KMS with a customer managed key for control and audit, and S3 Bucket Keys to cut KMS request volume.\n\nRead more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html",
+    "commonMistakes": [
+      "Using object ACLs or public-read to share a file for a limited time.",
+      "Listing member account IDs in a bucket policy instead of using aws:PrincipalOrgID."
+    ],
+    "tags": ["domain-1", "task-1.1", "task-1.3"]
+  },
+  {
+    "id": "s3-data-protection",
+    "title": "Protecting S3 data from deletion and change",
+    "body": "- S3 Versioning keeps every version of an object; overwrites create a new version and deletes add a delete marker, so mistakes can be undone.\n- S3 Object Lock adds write-once-read-many retention to versions. Governance mode can be bypassed by users with special permission; compliance mode cannot be shortened or removed by anyone, including the root user, until retention ends. Legal holds have no expiry.\n- Replication (same-Region or cross-Region) keeps a copy in another bucket, which can be in another account.\n\nRead more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html",
+    "commonMistakes": [
+      "Choosing governance mode when even administrators must not delete data.",
+      "Turning on Object Lock to undo accidental overwrites when users still need to delete files."
+    ],
+    "tags": ["domain-1", "task-1.3"]
+  },
+  {
+    "id": "aws-backup",
+    "title": "AWS Backup",
+    "body": "AWS Backup centralizes backups for services such as Amazon EBS, RDS, Aurora, DynamoDB, EFS, FSx and S3.\n\n- A backup plan sets schedules, retention and copy rules; resources are assigned by tag or ARN.\n- Copy rules send recovery points to vaults in other Regions or other accounts in the organization.\n- AWS Backup Vault Lock in compliance mode becomes immutable after its grace time: nobody, including the root user or AWS, can delete recovery points before retention ends or remove the lock. Governance mode can be removed by principals with the right IAM permissions.\n\nRead more: https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html",
+    "commonMistakes": [
+      "Treating a cross-Region copy in the same account as isolated from that account's administrators.",
+      "Relying on a vault access policy that an administrator can edit."
+    ],
+    "tags": ["domain-1", "task-1.3"]
+  },
+  {
+    "id": "acm-and-tls",
+    "title": "Encryption in transit with AWS Certificate Manager",
+    "body": "AWS Certificate Manager (ACM) issues public certificates for integrated services such as Elastic Load Balancing, CloudFront and API Gateway, and renews them automatically when they are DNS validated and in use.\n\n- CloudFront only uses ACM certificates from us-east-1; regional services such as an ALB use a certificate in their own Region.\n- Terminating TLS on a load balancer or CloudFront keeps certificate handling off the instances.\n- For databases, require TLS on the server, for example rds.force_ssl in an RDS for PostgreSQL parameter group.\n- For S3, deny requests where aws:SecureTransport is false.\n\nRead more: https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html",
+    "commonMistakes": [
+      "Requesting the CloudFront certificate in the origin's Region.",
+      "Relying on each client's TLS settings when the server must refuse plain connections."
+    ],
+    "tags": ["domain-1", "task-1.3"]
+  }
+]
