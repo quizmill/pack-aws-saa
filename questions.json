@@ -404,7 +404,7 @@
     "categoryKey": "secure",
     "level": "hard",
     "difficulty": 4,
-    "prompt": "A three-tier application has an internet-facing Application Load Balancer in public subnets and application servers on Amazon EC2. The security team requires that the application servers can be reached only by the load balancer, never directly from the internet.\n\nWhich TWO configurations together meet this requirement? (Select TWO.)",
+    "prompt": "A three-tier application has an internet-facing Application Load Balancer in public subnets and application servers on Amazon EC2. The security team requires that the application servers have no network path to or from the internet of their own and accept traffic only from the load balancer.\n\nWhich TWO configurations together meet this requirement? (Select TWO.)",
     "options": [
       {
         "key": "A",
@@ -1152,7 +1152,7 @@
     "categoryKey": "resilient",
     "level": "veryhard",
     "difficulty": 5,
-    "prompt": "A company runs a TCP and HTTPS application behind Application Load Balancers in us-east-1 and eu-west-1. Enterprise customers allow outbound traffic only to IP addresses on an allow list and will accept exactly two static IP addresses. If one Region fails, traffic must move to the other within a minute, regardless of client DNS caching.\n\nWhich solution meets these requirements?",
+    "prompt": "A company runs an HTTPS application behind Application Load Balancers in us-east-1 and eu-west-1. Enterprise customers allow outbound traffic only to IP addresses on an allow list and will accept exactly two static IP addresses. If one Region fails, traffic must move to the other within a minute, regardless of client DNS caching.\n\nWhich solution meets these requirements?",
     "options": [
       {
         "key": "A",
@@ -1171,7 +1171,7 @@
       {
         "key": "D",
         "text": "Put an Amazon CloudFront distribution in front of both load balancers with an origin group that fails over between them",
-        "explanation": "CloudFront's edge addresses are many and change over time, so customers cannot allow-list two static IPs, and it handles HTTP(S) only."
+        "explanation": "CloudFront's edge addresses are many and change over time, so customers cannot allow-list two static IP addresses."
       }
     ],
     "explanation": "Global Accelerator gives two static anycast IP addresses that front endpoints in several Regions; it health-checks the endpoints and shifts traffic between Regions within seconds, without depending on DNS caches. ALBs cannot hold Elastic IPs, NLBs per Region give more than two addresses with DNS failover, and CloudFront has no small fixed IP set. Read more: https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html",
