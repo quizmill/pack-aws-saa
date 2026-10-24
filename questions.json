@@ -6661,7 +6661,7 @@
     "options": [
       {
         "key": "A",
-        "text": "An Amazon EBS io2 volume with Multi-Attach enabled, attached to every instance in the group",
+        "text": "An Amazon EBS io2 volume with Multi-Attach enabled, attached to each instance in the group",
         "explanation": "Multi-Attach works only for instances in the same Availability Zone as the volume, and the volume's size is fixed until you modify it."
       },
       {
@@ -6675,7 +6675,7 @@
       },
       {
         "key": "D",
-        "text": "An Amazon S3 bucket that each instance syncs to a local directory every few minutes",
+        "text": "An Amazon S3 bucket that each instance syncs to a local directory on a five-minute schedule",
         "explanation": "Periodic syncing gives each instance its own copy, so writes collide and other instances see changes late; it is not a shared file system."
       }
     ],
@@ -6794,7 +6794,7 @@
       },
       {
         "key": "C",
-        "text": "Spread the objects across several prefixes, for example by adding a device-based prefix to each key"
+        "text": "Spread the keys across several prefixes, for example by starting each key with a device ID"
       },
       {
         "key": "D",
@@ -6830,7 +6830,7 @@
       },
       {
         "key": "B",
-        "text": "AWS Batch with a job queue and a managed compute environment"
+        "text": "AWS Batch with a job queue and a compute environment that it scales"
       },
       {
         "key": "C",
@@ -6911,7 +6911,7 @@
       },
       {
         "key": "B",
-        "text": "Send each event to one Amazon SQS standard queue that all three services poll",
+        "text": "Send each event to one Amazon SQS standard queue that the three services poll",
         "explanation": "Each message in a queue is processed by one consumer, so every event would reach only one of the three services."
       },
       {
@@ -6921,7 +6921,7 @@
       },
       {
         "key": "D",
-        "text": "Invoke an AWS Lambda function that calls each service's API in turn for every order",
+        "text": "Invoke an AWS Lambda function that calls each service's API in turn for each order",
         "explanation": "Synchronous calls couple the services: a slow or failing service holds up the function, and events are lost if the retries run out."
       }
     ],
@@ -7409,7 +7409,7 @@
       },
       {
         "key": "C",
-        "text": "An Amazon Data Firehose stream with record format conversion",
+        "text": "An Amazon Data Firehose stream with record format conversion to Parquet",
         "explanation": "Firehose converts streaming records as they arrive; it does not pick up files that are already sitting in S3."
       },
       {
@@ -7645,7 +7645,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Copy the training set to an S3 Express One Zone directory bucket in the instances' Availability Zone"
+        "text": "Copy the data to an S3 Express One Zone directory bucket in the same zone as the compute"
       },
       {
         "key": "B",
@@ -8062,7 +8062,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Change the cache policy so that the cache key includes only the lang query string"
+        "text": "Narrow the cache policy's cache key to the lang query string alone"
       },
       {
         "key": "B",
@@ -8607,7 +8607,7 @@
       },
       {
         "key": "B",
-        "text": "AWS Global Accelerator with an endpoint group per Region, using traffic dials for the 10% split"
+        "text": "AWS Global Accelerator with two endpoint groups and a traffic dial set for the 10% split"
       },
       {
         "key": "C",
