@@ -513,7 +513,7 @@
       "Leaving data as row-based CSV and unpartitioned when queries read few columns and dates.",
       "Reprocessing the whole input every run instead of using job bookmarks."
     ],
-    "tags": ["domain-3", "task-3.5"]
+    "tags": ["domain-3", "task-3.5", "domain-4", "task-4.3"]
   },
   {
     "id": "s3-storage-classes",

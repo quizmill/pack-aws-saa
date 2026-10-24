@@ -10349,5 +10349,463 @@
       "scenario"
     ],
     "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-55",
+    "categoryKey": "cost-optimized",
+    "conceptId": "s3-storage-classes",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "Thousands of devices each write a 4 KB JSON reading straight to an Amazon S3 bucket, about 300 million objects a month. Analysts query the readings with Amazon Athena for 30 days. After that the readings must be kept for 5 years for audits that can wait several days for data. The company is designing the retention for this data.\n\nWhich solution is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add a lifecycle rule with an object size filter so the 4 KB objects move to S3 Glacier Deep Archive at 30 days",
+        "explanation": "Each object pays a transition request plus 40 KB of archive overhead, ten times its size, so archiving costs more than it saves."
+      },
+      {
+        "key": "B",
+        "text": "Have Data Firehose batch the records into large compressed objects, then move them to Glacier Deep Archive at 30 days"
+      },
+      {
+        "key": "C",
+        "text": "Store the objects in S3 Intelligent-Tiering with the Deep Archive Access tier activated",
+        "explanation": "Objects under 128 KB are never monitored or tiered, so every reading stays in the Frequent Access tier."
+      },
+      {
+        "key": "D",
+        "text": "Add a lifecycle rule that moves the objects to S3 Standard-IA at 30 days and keeps them there for 5 years",
+        "explanation": "Standard-IA bills each object as at least 128 KB, so a 4 KB reading costs as much as 32 of them."
+      }
+    ],
+    "explanation": "Very small objects are expensive to archive one by one: each lifecycle transition is a billed request, Glacier classes add 40 KB of overhead per object, Standard-IA bills a 128 KB minimum, and Intelligent-Tiering never tiers objects under 128 KB. Batching readings into large compressed objects as they arrive turns 300 million objects into a few thousand, which also makes Athena queries faster and cheaper, and those objects archive efficiently to S3 Glacier Deep Archive. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-56",
+    "categoryKey": "cost-optimized",
+    "conceptId": "s3-storage-classes",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company keeps 2 PB of media masters in S3 Standard-IA, where editors read them regularly. A new rule requires a copy in a second AWS Region. The copy will be read only if the primary Region is lost, and in that case the company can wait 12 hours for restored data. New masters must reach the copy automatically.\n\nWhich solution is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Set up S3 Cross-Region Replication that stores the replicas in S3 Standard-IA",
+        "explanation": "The copy works, but Standard-IA costs many times more per GB than an archive class for data that is never read."
+      },
+      {
+        "key": "B",
+        "text": "Move the masters to S3 Glacier Deep Archive with a lifecycle rule, then set up Cross-Region Replication",
+        "explanation": "Replication skips objects in Glacier Deep Archive, and the editors could no longer read the masters directly."
+      },
+      {
+        "key": "C",
+        "text": "Set up S3 Same-Region Replication to a bucket in a second AWS account",
+        "explanation": "A copy in the same Region is lost with the Region, so it misses the requirement."
+      },
+      {
+        "key": "D",
+        "text": "Set up S3 Cross-Region Replication that stores the replicas in S3 Glacier Deep Archive"
+      }
+    ],
+    "explanation": "A replication rule can set the storage class of the replicas, so objects replicate from S3 Standard-IA in the source straight into S3 Glacier Deep Archive in the destination Region. Deep Archive is the lowest-cost class, and a standard retrieval finishes within 12 hours. Standard-IA replicas cost far more, objects already in Deep Archive cannot be replicated, and a same-Region copy does not survive a Region loss. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-57",
+    "categoryKey": "cost-optimized",
+    "conceptId": "ec2-purchasing-options",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company's EC2 and Fargate usage, priced at On-Demand rates, is $40 an hour for 20 hours of each day and $150 an hour during a 4-hour daily peak. The workload will run for at least 3 years, and its instance families and Regions may change during that time. The company wants the lowest total compute cost.\n\nWhich purchasing approach meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A 3-year Compute Savings Plan sized to the $40-an-hour baseline, with the peak On-Demand"
+      },
+      {
+        "key": "B",
+        "text": "A 3-year Compute Savings Plan sized to the daily average of about $58 an hour",
+        "explanation": "For 20 hours a day the commitment above $40 goes unused, and the 4 peak hours cannot earn that waste back."
+      },
+      {
+        "key": "C",
+        "text": "A 3-year EC2 Instance Savings Plan sized to cover the $40-an-hour baseline",
+        "explanation": "It is tied to one instance family in one Region and does not cover Fargate, so the planned changes would leave it unused."
+      },
+      {
+        "key": "D",
+        "text": "A 3-year Compute Savings Plan sized to cover the $150-an-hour peak",
+        "explanation": "For 20 hours a day most of the commitment is unused but still billed."
+      }
+    ],
+    "explanation": "A Savings Plan bills its commitment every hour whether or not usage fills it. Commitment up to the $40 baseline is used every hour. Commitment above it would be used only 4 hours in 24, about 17% of the time, and no Savings Plan discount is deep enough to pay for the 83% of hours it sits idle. A Compute Savings Plan follows changes in family, Region and Fargate, which an EC2 Instance Savings Plan cannot. Read more: https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-58",
+    "categoryKey": "cost-optimized",
+    "conceptId": "compute-right-sizing",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A CPU-bound AWS Lambda function resizes images and runs millions of times a month. Load tests of one invocation at different memory settings gave these durations: 128 MB, 8.0 seconds (it also runs short of memory); 512 MB, 2.2 seconds; 1,024 MB, 0.95 seconds; 2,048 MB, 0.9 seconds. Lambda bills duration in GB-seconds, and the request charge is the same at every setting.\n\nWhich memory setting gives the LOWEST cost?",
+    "options": [
+      {
+        "key": "A",
+        "text": "128 MB",
+        "explanation": "8.0 seconds at 0.125 GB is 1.0 GB-second per call, more than at 1,024 MB."
+      },
+      {
+        "key": "B",
+        "text": "512 MB",
+        "explanation": "2.2 seconds at 0.5 GB is 1.1 GB-seconds per call, the second most expensive setting."
+      },
+      {
+        "key": "C",
+        "text": "1,024 MB"
+      },
+      {
+        "key": "D",
+        "text": "2,048 MB",
+        "explanation": "0.9 seconds at 2 GB is 1.8 GB-seconds per call; the extra memory barely shortens the run."
+      }
+    ],
+    "explanation": "Lambda allocates CPU in proportion to memory, so a CPU-bound function runs faster as memory grows, and cost is memory times duration. Here 1,024 MB costs 1 GB x 0.95 s = 0.95 GB-seconds per call, the lowest of the four: 128 MB costs 1.0, 512 MB costs 1.1, and 2,048 MB costs 1.8 because the run barely gets faster past that point. The smallest setting is not automatically the cheapest. Read more: https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-59",
+    "categoryKey": "cost-optimized",
+    "conceptId": "ec2-auto-scaling",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A web application in an Auto Scaling group takes 12 minutes to boot and initialize before it can serve traffic. Traffic surges arrive with little warning several times a week. To absorb them, the company keeps 20 extra instances running at all times, and they sit idle most of the week. The company wants to cut that cost while still adding capacity within a couple of minutes of a surge.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Remove the extra instances and turn on predictive scaling for the group",
+        "explanation": "Predictive scaling forecasts recurring patterns; surges with little warning would still wait 12 minutes for new instances."
+      },
+      {
+        "key": "B",
+        "text": "Run the 20 extra instances as Spot Instances instead of On-Demand",
+        "explanation": "Spot cuts their price, but 20 instances still run idle all week and can be reclaimed just before a surge."
+      },
+      {
+        "key": "C",
+        "text": "Shorten the group's health check grace period and default instance warmup",
+        "explanation": "Those settings change when the group trusts a new instance, not how long the application takes to initialize."
+      },
+      {
+        "key": "D",
+        "text": "Replace the extra instances with a warm pool of initialized instances kept stopped"
+      }
+    ],
+    "explanation": "A warm pool holds instances that have already booted and run their initialization, then keeps them stopped. Stopped instances pay only for their EBS volumes and Elastic IP addresses, and on scale-out they start and join the group in a fraction of the full 12 minutes. Predictive scaling needs a recurring pattern, idle Spot Instances still bill and can be interrupted, and warmup settings do not shorten initialization. Read more: https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-warm-pools.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-warm-pools.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-60",
+    "categoryKey": "cost-optimized",
+    "conceptId": "dynamodb-cost",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A DynamoDB table in us-east-1 takes about 5,000 writes per second around the clock. It was made a global table with a replica in us-west-2 only for disaster recovery, and nothing reads from the replica. The recovery plan accepts up to 24 hours of data loss and a day to restore, and the replica's replicated writes and storage nearly double the table's cost.\n\nWhich solution meets the recovery plan at the LOWEST cost?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Keep the global table and switch the us-west-2 replica to the Standard-IA table class",
+        "explanation": "Replicated writes are the bulk of the replica's cost, and Standard-IA makes writes more expensive, not less."
+      },
+      {
+        "key": "B",
+        "text": "Remove the replica and back up the table daily with AWS Backup, copying each backup to us-west-2"
+      },
+      {
+        "key": "C",
+        "text": "Remove the replica and turn on point-in-time recovery for the table in us-east-1",
+        "explanation": "Point-in-time recovery data stays in us-east-1, so it is lost along with the Region."
+      },
+      {
+        "key": "D",
+        "text": "Remove the replica and copy each change to a us-west-2 table with DynamoDB Streams and Lambda",
+        "explanation": "Every write is still paid for again in us-west-2, plus the Lambda invocations to copy it."
+      }
+    ],
+    "explanation": "A global table bills every write again in each replica Region, which is costly for a write-heavy table whose replica only waits for a disaster. A daily AWS Backup copy to another Region meets a 24-hour recovery point and a one-day restore at backup storage prices, and old backups can move to cold storage. Standard-IA raises write prices, point-in-time recovery stays in one Region, and a stream copier still pays for every write twice. Read more: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/backuprestore_HowItWorksAWS.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/backuprestore_HowItWorksAWS.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-61",
+    "categoryKey": "cost-optimized",
+    "conceptId": "data-lakes",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "An Amazon Aurora PostgreSQL cluster holds 8 TB, of which 7 TB is orders older than 2 years. Those old orders are read only by a monthly compliance report, which can take an hour to run, and they must be kept for 10 years. Storage is now most of the cluster's cost, and the application itself reads only recent orders.\n\nWhich solution reduces cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Export old rows to S3 as Parquet, delete them from the cluster, and run the report with Athena"
+      },
+      {
+        "key": "B",
+        "text": "Switch the cluster's storage configuration to Aurora I/O-Optimized",
+        "explanation": "I/O-Optimized removes I/O charges but raises the storage price, and storage is this cluster's main cost."
+      },
+      {
+        "key": "C",
+        "text": "Add an Aurora Replica and run the monthly compliance report on it",
+        "explanation": "Replicas share the cluster volume, so the 8 TB is still stored and billed, and the replica adds an instance."
+      },
+      {
+        "key": "D",
+        "text": "Move the cluster to Aurora Serverless v2 so that capacity follows the monthly report",
+        "explanation": "Serverless v2 changes how compute is billed; the 7 TB of old orders is still billed as cluster storage."
+      }
+    ],
+    "explanation": "Aurora bills the storage the cluster volume uses, and the volume shrinks when data is deleted. Moving cold orders to Amazon S3 in compressed Parquet costs a fraction of database storage, and Athena queries them by column for the monthly report, paying only per scan; S3 lifecycle rules can then archive them for the 10-year retention. I/O-Optimized raises storage prices, replicas share the same volume, and Serverless v2 only changes compute billing. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-export-snapshot.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-export-snapshot.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-62",
+    "categoryKey": "cost-optimized",
+    "conceptId": "database-cost",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "An Aurora MySQL cluster has a db.r6g.4xlarge writer and three db.r6g.4xlarge readers behind the reader endpoint. The writer is busy around the clock. The readers serve reports whose load is near zero most of the month and peaks for two days at month-end, when all three are needed. The company wants to cut the readers' cost without slowing month-end reports or changing endpoints.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Buy Reserved Instances for the writer and the three readers for a 3-year term",
+        "explanation": "The readers would still pay for full-size instances every hour of the month, idle or not, only at a discount."
+      },
+      {
+        "key": "B",
+        "text": "Remove two of the readers and keep a single provisioned reader for the reports",
+        "explanation": "One reader cannot carry the month-end peak that needs all three, so reports would slow down."
+      },
+      {
+        "key": "C",
+        "text": "Replace the readers with Aurora Serverless v2 readers that scale independently of the writer"
+      },
+      {
+        "key": "D",
+        "text": "Convert the writer and the three readers to Aurora Serverless v2 instances",
+        "explanation": "A writer that is busy around the clock costs more on Serverless v2 than as a provisioned instance."
+      }
+    ],
+    "explanation": "An Aurora cluster can mix a provisioned writer with Aurora Serverless v2 readers behind the same reader endpoint. Serverless v2 readers in promotion tiers 2 to 15 scale with their own load rather than the writer's, so they shrink to their minimum capacity for most of the month and grow for month-end. Reserved Instances still pay for idle readers, one reader cannot carry the peak, and a steady writer is cheaper provisioned. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.how-it-works.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.how-it-works.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-63",
+    "categoryKey": "cost-optimized",
+    "conceptId": "hybrid-connectivity",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company has one 10 Gbps dedicated AWS Direct Connect connection. Over the past year its traffic averaged 400 Mbps and never exceeded 700 Mbps, and no growth is expected. The company has no backup path: an outage of the connection would stop the business, though reduced throughput during an outage is acceptable. It wants lower connectivity costs and a backup path.\n\nWhich TWO actions meet these requirements MOST cost-effectively? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Replace the 10 Gbps connection with a 1 Gbps hosted connection from a Direct Connect Partner"
+      },
+      {
+        "key": "B",
+        "text": "Add a second 10 Gbps dedicated connection at a different Direct Connect location",
+        "explanation": "It gives the most resilient design, but it doubles the port charges of a link that already runs at under a tenth of its capacity."
+      },
+      {
+        "key": "C",
+        "text": "Add a second 1 Gbps hosted connection at the same Direct Connect location",
+        "explanation": "A second circuit costs more than a VPN, and sharing a location leaves both links exposed to one site failure."
+      },
+      {
+        "key": "D",
+        "text": "Add an AWS Site-to-Site VPN connection over the internet as a backup path"
+      },
+      {
+        "key": "E",
+        "text": "Bundle the 10 Gbps connection with a second one into a link aggregation group",
+        "explanation": "A link aggregation group adds another dedicated port at the same location, raising cost for capacity nobody uses."
+      }
+    ],
+    "explanation": "Direct Connect port hours rise with port speed, so a 1 Gbps hosted connection from a partner fits traffic that never passes 700 Mbps at a fraction of the 10 Gbps cost. A Site-to-Site VPN over the internet is the lowest-cost backup path: BGP prefers Direct Connect while it is up and falls back to the VPN, and lower throughput during an outage is acceptable. A second dedicated or hosted circuit, or a link aggregation group, costs more than this design needs. Read more: https://docs.aws.amazon.com/directconnect/latest/UserGuide/hosted_connection.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/hosted_connection.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "A",
+      "D"
+    ]
+  },
+  {
+    "id": "aws-saa-veryhard-d4-64",
+    "categoryKey": "cost-optimized",
+    "conceptId": "vpc-endpoints",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company has 40 VPCs in one Region, all attached to a transit gateway. Each VPC has its own interface VPC endpoints for the same eight AWS services, such as AWS KMS and Amazon SQS, in three Availability Zones. Traffic through the endpoints is light, but their hourly charges have become a large cost. Workloads must keep reaching these services privately.\n\nWhich solution reduces cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Centralize the endpoints in a shared services VPC and resolve them from every VPC with private hosted zones"
+      },
+      {
+        "key": "B",
+        "text": "Replace the interface endpoints in each VPC with gateway VPC endpoints for the same services",
+        "explanation": "Gateway endpoints exist only for Amazon S3 and DynamoDB, so the other services have no gateway endpoint to use."
+      },
+      {
+        "key": "C",
+        "text": "Remove the endpoints and send the service traffic through a NAT gateway in each VPC",
+        "explanation": "Forty NAT gateways add hourly and per-GB charges, and the traffic leaves for public service endpoints."
+      },
+      {
+        "key": "D",
+        "text": "Keep the endpoints in every VPC, but in a single Availability Zone in each VPC",
+        "explanation": "This still runs 320 endpoints and adds cross-zone traffic and a single point of failure in every VPC."
+      }
+    ],
+    "explanation": "Interface endpoints bill per hour in each Availability Zone, so 40 copies of the same eight endpoints pay 40 times over. Creating them once in a shared services VPC, with private DNS turned off there and Route 53 private hosted zones associated with every VPC, sends traffic over the existing transit gateway, whose per-GB charge is small for light traffic. Gateway endpoints cover only S3 and DynamoDB, NAT gateways add cost, and one zone per VPC still pays for 320 endpoints. Read more: https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-access-to-vpc-private-endpoints.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-access-to-vpc-private-endpoints.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-veryhard-d4-65",
+    "categoryKey": "cost-optimized",
+    "conceptId": "network-topology",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company connects 30 VPCs in one Region through a transit gateway. Two of them, an analytics VPC and a data VPC, exchange about 500 TB a month, and the transit gateway's data processing charge for that traffic is now the largest networking cost. The other VPCs must keep reaching both of them through the transit gateway.\n\nWhich solution reduces this cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the two VPCs' connectivity to an AWS Cloud WAN core network",
+        "explanation": "Cloud WAN also charges for the data it processes, plus its own attachment and network fees."
+      },
+      {
+        "key": "B",
+        "text": "Replace the transit gateway with a full mesh of VPC peering connections",
+        "explanation": "A mesh of 30 VPCs needs 435 peering connections to manage, when only one pair carries the heavy traffic."
+      },
+      {
+        "key": "C",
+        "text": "Peer the two VPCs directly, with specific routes to each other over the peering connection"
+      },
+      {
+        "key": "D",
+        "text": "Expose the data VPC's services to the analytics VPC through AWS PrivateLink",
+        "explanation": "PrivateLink still bills per GB processed, plus endpoint and load balancer hours for the service."
+      }
+    ],
+    "explanation": "VPC peering has no hourly or per-GB processing charge, only standard data transfer, which is free within one Availability Zone. Adding a peering connection for the one heavy pair, with routes more specific than the transit gateway's, moves 500 TB a month off the transit gateway while every other VPC keeps using it. Cloud WAN and PrivateLink still charge per GB, and a full mesh adds hundreds of connections for no gain. Read more: https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/vpc-peering.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/vpc-peering.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
   }
 ]
