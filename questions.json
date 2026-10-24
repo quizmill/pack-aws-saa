@@ -7511,5 +7511,757 @@
       "scenario"
     ],
     "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d3-37",
+    "categoryKey": "high-performing",
+    "conceptId": "file-storage",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A media company keeps about 100 GiB of project files on an Amazon EFS file system that uses Bursting throughput. Several times a day, render jobs read the files at high throughput for a few minutes; the timing is unpredictable. Once the burst credits run out, throughput drops to a low baseline and the jobs stall. The company wants to pay only for the throughput the jobs actually drive.\n\nWhich change meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Switch the file system to Provisioned throughput set at the jobs' peak rate",
+        "explanation": "Provisioned throughput removes the stall, but the company pays for the peak rate around the clock while the jobs run only minutes a day."
+      },
+      {
+        "key": "B",
+        "text": "Switch the file system to Elastic throughput"
+      },
+      {
+        "key": "C",
+        "text": "Create a new file system in Max I/O performance mode and copy the files to it",
+        "explanation": "Max I/O is a previous-generation mode for highly parallel workloads at higher latency; it changes operations per second, not the burst credit throughput limit."
+      },
+      {
+        "key": "D",
+        "text": "Store about 1 TiB of padding files so that the bursting baseline rises with the stored size",
+        "explanation": "More stored data does raise the Bursting baseline, but the company pays to store data it does not need, and spikes can still drain the credits."
+      }
+    ],
+    "explanation": "Elastic throughput scales throughput up and down automatically with the workload and bills for the data read and written, which AWS recommends for spiky or unpredictable workloads; there are no burst credits to exhaust. Provisioned throughput charges for the peak all day, padding pays for unused storage, and Max I/O does not address throughput limits (and is not supported with Elastic throughput). Read more: https://docs.aws.amazon.com/efs/latest/ug/performance.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/efs/latest/ug/performance.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d3-38",
+    "categoryKey": "high-performing",
+    "conceptId": "file-storage",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A chip design company is moving an on-premises NAS to AWS. Linux build servers on Amazon EC2 access the project directories over NFS, and Windows engineers open the same directories over SMB with Active Directory permissions. The company wants a fully managed file service that serves both protocols on the same data, with snapshots and automatic tiering of cold data to lower-cost storage.\n\nWhich service meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amazon EFS with lifecycle management to the Infrequent Access storage class",
+        "explanation": "EFS tiers cold files automatically, but it serves only NFS clients, so the Windows engineers' SMB access would be lost."
+      },
+      {
+        "key": "B",
+        "text": "Amazon FSx for Windows File Server with data deduplication turned on",
+        "explanation": "FSx for Windows File Server serves SMB clients only; the Linux build servers would need NFS access it does not offer."
+      },
+      {
+        "key": "C",
+        "text": "Amazon FSx for NetApp ONTAP"
+      },
+      {
+        "key": "D",
+        "text": "Amazon FSx for Lustre linked to an Amazon S3 bucket",
+        "explanation": "Lustre clients are Linux only, so the Windows engineers could not open the directories over SMB."
+      }
+    ],
+    "explanation": "FSx for NetApp ONTAP serves the same volumes over NFS, SMB and iSCSI, integrates with Active Directory, takes snapshots, and tiers cold data automatically from SSD to a lower-cost capacity pool. EFS is NFS-only, FSx for Windows File Server is SMB-only, and FSx for Lustre serves Linux clients. Read more: https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d3-39",
+    "categoryKey": "high-performing",
+    "conceptId": "ebs-performance",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A sequencing pipeline writes hundreds of GB of intermediate scratch files per job with millions of small random reads and writes. The files are deleted when the job ends, and if an instance fails the job is simply restarted from its input in Amazon S3. The company wants the highest random I/O performance for the scratch space at the lowest cost.\n\nWhich storage should the pipeline use for scratch data?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A Provisioned IOPS SSD (io2) Block Express volume provisioned for the peak IOPS",
+        "explanation": "io2 Block Express delivers the IOPS, but it charges for durable, network-attached storage and provisioned IOPS that throwaway scratch data does not need."
+      },
+      {
+        "key": "B",
+        "text": "Several gp3 volumes striped together with RAID 0 on each instance",
+        "explanation": "Striping adds up the volumes' IOPS, but each I/O still crosses the network to EBS and the provisioned IOPS are billed, so it is slower and dearer than local NVMe."
+      },
+      {
+        "key": "C",
+        "text": "An Amazon EFS file system with Elastic throughput shared by all the instances",
+        "explanation": "EFS is a network file system; its per-operation latency is much higher than local disks for millions of small random I/Os."
+      },
+      {
+        "key": "D",
+        "text": "Local NVMe instance store volumes on a storage optimized instance type"
+      }
+    ],
+    "explanation": "Instance store volumes are physically attached to the host, so NVMe instance store on storage optimized instances gives very high random IOPS at low latency, and its cost is included in the instance price. The data is lost when the instance stops or fails, which is acceptable for scratch files that a restart recreates. io2 and gp3 RAID add network latency and per-volume charges, and EFS is a network file system. Read more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d3-40",
+    "categoryKey": "high-performing",
+    "conceptId": "s3-performance",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "Machine learning training jobs on Amazon EC2 instances in one Availability Zone read millions of small objects from an S3 Standard bucket in each epoch, and profiling shows the GPUs waiting on per-request latency. The training set can be copied again from the source bucket if lost, so single-zone storage is acceptable. The jobs must keep using the S3 API.\n\nWhich solution reduces the data access latency the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Copy the training set to an S3 Express One Zone directory bucket in the instances' Availability Zone"
+      },
+      {
+        "key": "B",
+        "text": "Serve the bucket through an Amazon CloudFront distribution and read from the distribution",
+        "explanation": "CloudFront caches content at edge locations for distant viewers; instances in the bucket's own Region gain little and pay for an extra hop."
+      },
+      {
+        "key": "C",
+        "text": "Turn on S3 Transfer Acceleration and read through the accelerate endpoint",
+        "explanation": "Transfer Acceleration routes long-distance transfers through edge locations; it does not lower per-request latency for clients in the same Region."
+      },
+      {
+        "key": "D",
+        "text": "Move the objects to S3 Intelligent-Tiering so that frequently read objects stay in a fast tier",
+        "explanation": "Intelligent-Tiering optimizes storage cost; its frequent access tier performs like S3 Standard, so request latency is unchanged."
+      }
+    ],
+    "explanation": "S3 Express One Zone stores objects in a directory bucket in one Availability Zone that you choose, so storage sits next to the compute, and it is built for consistent single-digit millisecond access through the S3 API, the lowest latency S3 storage class. CloudFront and Transfer Acceleration help distant clients, and Intelligent-Tiering changes cost, not latency. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-high-performance.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-high-performance.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d3-41",
+    "categoryKey": "high-performing",
+    "conceptId": "containers",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An Amazon ECS service on AWS Fargate sits behind an Application Load Balancer. Each request spends most of its time waiting on downstream APIs, so task CPU stays near 25% even when response times climb under load, and the service's target tracking policy on 70% average CPU never scales out. Load tests show how many requests per minute one task handles well.\n\nWhich scaling configuration should the team use?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Keep target tracking on CPU but lower the target from 70% to 30%",
+        "explanation": "CPU barely moves with this load, so a lower CPU target either keeps scaling out at idle or still misses the request surges."
+      },
+      {
+        "key": "B",
+        "text": "A step scaling policy that adds tasks as average memory utilization climbs",
+        "explanation": "Waiting on downstream calls uses little memory, so memory does not rise with request volume either."
+      },
+      {
+        "key": "C",
+        "text": "Target tracking on ALBRequestCountPerTarget at the per-task rate from load tests"
+      },
+      {
+        "key": "D",
+        "text": "Scheduled scaling actions that add tasks during business hours",
+        "explanation": "A schedule adds tasks by the clock, not by demand, so unexpected surges are still unserved and quiet periods are overprovisioned."
+      }
+    ],
+    "explanation": "A scaling metric must rise and fall with the load a task can serve. For an I/O-bound service behind an ALB, the request count per target tracks that load directly, and target tracking adds or removes tasks to hold it at the rate one task handles well. CPU and memory stay flat for this workload, and schedules do not follow demand. Read more: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d3-42",
+    "categoryKey": "high-performing",
+    "conceptId": "ec2-instance-selection",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A licensing server runs on a single t3.large instance in standard mode and cannot be scaled out. For the past month its CPU has run at about 70% around the clock; the CPU credit balance reaches zero each morning and the server is then held to its baseline. The company wants steady performance for this sustained load at the lowest cost.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on unlimited mode for the t3.large instance",
+        "explanation": "Unlimited mode keeps the CPU available, but at a sustained average far above baseline the surplus credit charges make it cost more than a fixed performance instance."
+      },
+      {
+        "key": "B",
+        "text": "Move the server to a t4g.large instance with Graviton processors",
+        "explanation": "A t4g.large is still a burstable instance with a baseline well below 70%, so it runs out of credits the same way."
+      },
+      {
+        "key": "C",
+        "text": "Attach a gp3 volume with more provisioned IOPS and throughput",
+        "explanation": "The bottleneck is CPU credits, not storage, so faster storage leaves the throttling in place."
+      },
+      {
+        "key": "D",
+        "text": "Move the server to a fixed performance instance such as m7i.large"
+      }
+    ],
+    "explanation": "Burstable instances suit workloads that run below their baseline most of the time. When average CPU stays above the break-even point, a T instance in unlimited mode costs more than an equivalent fixed performance instance, and in standard mode it is throttled, so an M-family instance is the right choice. Another burstable type has the same problem, and storage is not the bottleneck. Read more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode-concepts.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode-concepts.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d3-43",
+    "categoryKey": "high-performing",
+    "conceptId": "amazon-sqs",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An order service sends status updates to an Amazon SQS FIFO queue. Updates for the same customer must be processed in the order they were sent, but updates for different customers can be processed in any order. Every message uses the same message group ID, so adding consumers has left throughput unchanged.\n\nWhich change lets the consumers process messages in parallel while keeping the required order?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Use the customer ID as the message group ID for each message"
+      },
+      {
+        "key": "B",
+        "text": "Move to an SQS standard queue and add more consumers",
+        "explanation": "A standard queue scales out, but it delivers messages in best-effort order and can deliver one more than once, so a customer's updates could be applied out of order."
+      },
+      {
+        "key": "C",
+        "text": "Turn on content-based deduplication for the queue",
+        "explanation": "Deduplication drops repeated messages within five minutes; it does nothing to let consumers work on different messages at the same time."
+      },
+      {
+        "key": "D",
+        "text": "Turn on high throughput mode for the FIFO queue and keep the single message group ID",
+        "explanation": "High throughput mode raises the queue's request limits, but messages in one group are still handed out one batch at a time, in order."
+      }
+    ],
+    "explanation": "A FIFO queue orders messages within each message group and lets different groups be processed in parallel; while a group's message is in flight, no other message from that group is delivered. With the customer ID as the group ID, each customer's updates stay in order and consumers work on many customers at once. A standard queue loses ordering, deduplication does not add parallelism, and a single group stays serial even in high throughput mode. Read more: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-understanding-logic.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-understanding-logic.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d3-44",
+    "categoryKey": "high-performing",
+    "conceptId": "containers",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A web application runs on Amazon EKS with EC2 nodes. The number of pods is fixed, so pods saturate their CPU during peaks. When the team adds pods by hand, some stay Pending because no node has room for them. The team wants the pod count to follow CPU load and nodes to be added automatically when pods cannot be scheduled.\n\nWhich TWO components should the team use? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "The Kubernetes Horizontal Pod Autoscaler, scaling the deployment on CPU utilization"
+      },
+      {
+        "key": "B",
+        "text": "The Kubernetes Vertical Pod Autoscaler, adjusting the pods' CPU requests",
+        "explanation": "The Vertical Pod Autoscaler changes each pod's resource requests rather than the number of pods, and larger requests make scheduling harder."
+      },
+      {
+        "key": "C",
+        "text": "Amazon ECS Service Auto Scaling with a target tracking policy",
+        "explanation": "Service Auto Scaling scales ECS services; it does not manage Kubernetes deployments on EKS."
+      },
+      {
+        "key": "D",
+        "text": "Karpenter, provisioning nodes for pods that cannot be scheduled"
+      },
+      {
+        "key": "E",
+        "text": "An EC2 Auto Scaling target tracking policy on the node group's average CPU",
+        "explanation": "Node CPU does not show unschedulable pods: pods can be Pending because of their requests while the nodes' measured CPU is moderate."
+      }
+    ],
+    "explanation": "The Horizontal Pod Autoscaler changes a deployment's replica count to hold a target such as average CPU utilization, and Karpenter (like the Cluster Autoscaler) watches for pods that cannot be scheduled and launches right-sized nodes for them. The Vertical Pod Autoscaler resizes pods instead of adding them, ECS Service Auto Scaling is for ECS, and node CPU does not reflect Pending pods. Read more: https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "A",
+      "D"
+    ]
+  },
+  {
+    "id": "aws-saa-hard-d3-45",
+    "categoryKey": "high-performing",
+    "conceptId": "dynamodb-performance",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An Amazon DynamoDB table of orders has OrderId as its partition key. A new screen must list a given customer's orders, newest first. Today the application runs a Scan with a filter on CustomerId, which consumes large amounts of read capacity and is slow. The table is in production and cannot be recreated.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add a local secondary index with CustomerId as its sort key",
+        "explanation": "A local secondary index keeps the table's partition key (OrderId) and can be created only when the table is created, so it cannot group a customer's orders here."
+      },
+      {
+        "key": "B",
+        "text": "Add a global secondary index keyed on CustomerId with OrderDate as sort key"
+      },
+      {
+        "key": "C",
+        "text": "Raise the table's read capacity so that the Scan finishes faster",
+        "explanation": "A Scan still reads every item in the table, so cost and latency keep growing with the table no matter how much capacity it has."
+      },
+      {
+        "key": "D",
+        "text": "Put a DynamoDB Accelerator (DAX) cluster in front of the table to cache the Scan",
+        "explanation": "DAX can cache scan results, but each miss still reads the whole table and new orders show up late."
+      }
+    ],
+    "explanation": "A global secondary index can be added to an existing table with a different partition and sort key; a Query on CustomerId with ScanIndexForward set to false reads only that customer's orders, newest first. A local secondary index must share the table's partition key and be defined at creation, more capacity keeps the full Scan, and DAX only caches the expensive Scan. Read more: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d3-46",
+    "categoryKey": "high-performing",
+    "conceptId": "database-migration",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company is moving a 5 TB on-premises Oracle database to Amazon Aurora PostgreSQL to leave Oracle licensing behind. The schema includes hundreds of PL/SQL stored procedures and functions, the database takes writes all day, and the cutover window is under one hour.\n\nWhich migration approach meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Run an AWS DMS full load and CDC task and let DMS create the tables on the target",
+        "explanation": "DMS creates only basic tables and primary keys; secondary indexes, foreign keys and the PL/SQL procedures and functions would not be converted."
+      },
+      {
+        "key": "B",
+        "text": "Export the database with Oracle Data Pump and import the dump file into Aurora PostgreSQL",
+        "explanation": "Data Pump files can be imported only into Oracle databases, and an export-import of 5 TB cannot fit a one-hour window anyway."
+      },
+      {
+        "key": "C",
+        "text": "Convert the schema and code with DMS Schema Conversion, then run an AWS DMS full load and CDC task"
+      },
+      {
+        "key": "D",
+        "text": "Migrate to Amazon RDS for Oracle with Data Pump, then point the application at it",
+        "explanation": "This is a homogeneous move that keeps the company on Oracle, which it is trying to leave."
+      }
+    ],
+    "explanation": "A heterogeneous migration has two parts: DMS Schema Conversion (or the AWS Schema Conversion Tool) converts the Oracle schema and most PL/SQL code objects to PostgreSQL, and an AWS DMS task with full load plus change data capture copies the data and keeps it in sync until a short cutover. DMS alone creates only basic tables, Data Pump targets Oracle, and RDS for Oracle keeps the Oracle engine. Read more: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d3-47",
+    "categoryKey": "high-performing",
+    "conceptId": "caching",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A storefront reads product prices through Amazon ElastiCache with lazy loading and a one-hour TTL. After the pricing team changes a price in the database, customers keep seeing the old price for up to an hour. The company needs readers to see a new price as soon as it is written, and read traffic must stay on the cache.\n\nWhich change meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Lower the TTL on cached prices to one minute",
+        "explanation": "A shorter TTL narrows the stale window to a minute instead of removing it, and it sends far more reads to the database as entries expire."
+      },
+      {
+        "key": "B",
+        "text": "Add read replicas to the ElastiCache cluster",
+        "explanation": "Replicas copy the cached entries, including the stale ones, so they add read capacity without fixing staleness."
+      },
+      {
+        "key": "C",
+        "text": "Read prices from the database and use the cache only when the database is busy",
+        "explanation": "This sends most read traffic back to the database, which the company wants to avoid."
+      },
+      {
+        "key": "D",
+        "text": "Have the application update the cached price whenever it writes a price to the database"
+      }
+    ],
+    "explanation": "With write-through, the application updates the cache in the same step that writes the database, so cached prices are never older than the last write and reads still hit the cache; a TTL can stay to clear entries nobody reads. A shorter TTL only shrinks the stale window, replicas copy stale data, and reading from the database moves the load back. Read more: https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d3-48",
+    "categoryKey": "high-performing",
+    "conceptId": "rds-availability",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A travel site's Amazon RDS for MySQL database runs in us-east-1. A new European audience generates mostly read traffic, and pages served from eu-west-1 web servers are slow because every query crosses the Atlantic. Writes can stay in us-east-1, and the company wants to keep RDS for MySQL.\n\nWhich solution reduces read latency for the European pages?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Convert the instance to a Multi-AZ DB cluster and send European reads to its reader endpoint",
+        "explanation": "A Multi-AZ DB cluster's readable standbys are in the same Region as the writer, so European reads still cross the Atlantic."
+      },
+      {
+        "key": "B",
+        "text": "Create a cross-Region read replica in eu-west-1 and send the European read queries to it"
+      },
+      {
+        "key": "C",
+        "text": "Put AWS Global Accelerator in front of the DB instance's endpoint",
+        "explanation": "Global Accelerator can shorten the network path, but every query still runs against a database on the other side of the Atlantic."
+      },
+      {
+        "key": "D",
+        "text": "Create a read replica in another Availability Zone of us-east-1",
+        "explanation": "A replica in us-east-1 adds read capacity, but it is just as far from the European web servers as the primary."
+      }
+    ],
+    "explanation": "RDS for MySQL supports cross-Region read replicas that replicate asynchronously from the primary, so the European web servers can read from a copy in their own Region while writes still go to us-east-1. A Multi-AZ DB cluster and a same-Region replica keep the data across the ocean, and Global Accelerator cannot remove the distance to the database. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.XRgn.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.XRgn.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d3-49",
+    "categoryKey": "high-performing",
+    "conceptId": "vpc-endpoints",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A SaaS provider runs an API on Amazon EC2 in its own VPC. Hundreds of customers want to call it from their own VPCs in other AWS accounts without traffic crossing the internet. Many customer VPCs use the same CIDR block as the provider's VPC, and customers must reach only the API and nothing else on the provider's network.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create a VPC peering connection between the provider's VPC and each customer VPC",
+        "explanation": "Peering is not possible between VPCs with overlapping CIDR blocks, and it opens routes to the whole VPC rather than one service."
+      },
+      {
+        "key": "B",
+        "text": "Attach the provider's VPC and every customer VPC to a shared AWS Transit Gateway",
+        "explanation": "Overlapping CIDR blocks cannot be routed between attachments, and a shared transit gateway connects networks rather than exposing one service."
+      },
+      {
+        "key": "C",
+        "text": "Set up an AWS Site-to-Site VPN from each customer VPC to the provider's VPC",
+        "explanation": "Hundreds of VPN connections are heavy to run, and overlapping address ranges still break routing."
+      },
+      {
+        "key": "D",
+        "text": "Publish the API as a PrivateLink endpoint service behind a Network Load Balancer"
+      }
+    ],
+    "explanation": "AWS PrivateLink lets a provider publish a service behind a Network Load Balancer as an endpoint service; each customer creates an interface endpoint in its own VPC that gets local IP addresses, so overlapping CIDR blocks do not matter and only the service is reachable, with traffic staying on the AWS network. Peering, a transit gateway and VPNs all route between whole networks and fail on overlapping ranges. Read more: https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d3-50",
+    "categoryKey": "high-performing",
+    "conceptId": "edge-acceleration",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "Product pages are served through an Amazon CloudFront distribution with an Application Load Balancer as the origin. The cache hit ratio is only 15%, and the origin is heavily loaded. The distribution's cache policy includes all query strings, all cookies and the User-Agent header in the cache key, but the pages vary only by the lang query string.\n\nWhich change will raise the cache hit ratio the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Change the cache policy so that the cache key includes only the lang query string"
+      },
+      {
+        "key": "B",
+        "text": "Turn on Origin Shield in the Region closest to the load balancer",
+        "explanation": "Origin Shield adds a central caching layer, but with the same fragmented cache key nearly every request is still a unique object."
+      },
+      {
+        "key": "C",
+        "text": "Raise the cache policy's default and maximum TTL values",
+        "explanation": "Longer TTLs keep objects longer, but almost every request differs in cookies or User-Agent, so few requests ever match a cached object."
+      },
+      {
+        "key": "D",
+        "text": "Add targets to the load balancer so that the origin can handle the misses",
+        "explanation": "More targets let the origin absorb the misses but do nothing to the hit ratio."
+      }
+    ],
+    "explanation": "Every value in the cache key splits the cache: with all cookies, all query strings and User-Agent in the key, nearly every request is a different object. Keeping only the lang query string in the cache policy (and forwarding anything else the origin needs through an origin request policy) lets requests share cached pages. Origin Shield and longer TTLs cannot help with a fragmented key, and more targets only absorb the misses. Read more: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cache-hit-ratio.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cache-hit-ratio.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d3-51",
+    "categoryKey": "high-performing",
+    "conceptId": "vpc-endpoints",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "Analytics instances in private subnets read about 50 TB a day from Amazon S3 buckets in the same Region. All of that traffic goes through a NAT gateway, whose data processing charges now dominate the network bill. The team wants the S3 traffic to bypass the NAT gateway without changing the application.\n\nWhich solution meets these requirements MOST cost-effectively?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create an interface VPC endpoint for Amazon S3 in the private subnets",
+        "explanation": "An interface endpoint keeps the traffic private but adds hourly and per-GB charges, which a gateway endpoint does not have."
+      },
+      {
+        "key": "B",
+        "text": "Add a second NAT gateway and split the instances' routes between the two",
+        "explanation": "Two NAT gateways still process and bill every gigabyte, adding a second hourly charge on top."
+      },
+      {
+        "key": "C",
+        "text": "Create a gateway VPC endpoint for S3 in the private subnets' route tables"
+      },
+      {
+        "key": "D",
+        "text": "Turn on S3 Transfer Acceleration for the buckets and use the accelerate endpoint",
+        "explanation": "Transfer Acceleration routes requests through edge locations over the internet path, so traffic still leaves through the NAT gateway and adds a per-GB fee."
+      }
+    ],
+    "explanation": "A gateway endpoint for S3 is a route table target: traffic from the private subnets to S3 in the same Region goes straight to S3 without the NAT gateway, and gateway endpoints have no hourly or data processing charge. Interface endpoints work but bill per hour and per GB, a second NAT gateway still processes every byte, and Transfer Acceleration adds cost without changing the path through NAT. Read more: https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d3-52",
+    "categoryKey": "high-performing",
+    "conceptId": "kinesis-streaming",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A clickstream application writes to an Amazon Kinesis Data Streams stream in provisioned mode with four shards. During unpredictable bursts of several times the normal volume, producers receive ProvisionedThroughputExceededException errors. The team wants the stream to absorb the bursts without forecasting shard counts or running resharding scripts.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Register the consumers for enhanced fan-out",
+        "explanation": "Enhanced fan-out gives each consumer dedicated read throughput; the producers are throttled on writes, which it does not change."
+      },
+      {
+        "key": "B",
+        "text": "Switch the stream to on-demand capacity mode"
+      },
+      {
+        "key": "C",
+        "text": "Raise the stream's data retention period to seven days",
+        "explanation": "Retention controls how long records stay readable; it adds no write capacity."
+      },
+      {
+        "key": "D",
+        "text": "Have producers retry throttled writes with exponential backoff and jitter",
+        "explanation": "Backoff smooths brief throttling, but bursts of several times the stream's capacity still exceed it, so records fall further and further behind."
+      }
+    ],
+    "explanation": "In on-demand mode Kinesis Data Streams manages the shards itself, accommodating up to double the previous peak write throughput and scaling as new peaks arrive, so there is no shard count to forecast. Enhanced fan-out and retention affect reading, and retries alone cannot carry sustained bursts above the provisioned capacity. Read more: https://docs.aws.amazon.com/streams/latest/dev/how-do-i-size-a-stream.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/streams/latest/dev/how-do-i-size-a-stream.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.5",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d3-53",
+    "categoryKey": "high-performing",
+    "conceptId": "data-lakes",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A nightly AWS Glue ETL job reads every file under an Amazon S3 prefix, transforms the data and writes the results to a curated bucket. New files arrive in the prefix every day and old ones are kept, so the job's run time and cost grow each night. Only the files that arrived since the previous run need to be processed.\n\nWhich solution meets these requirements with the LEAST effort?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Enable job bookmarks on the Glue job"
+      },
+      {
+        "key": "B",
+        "text": "Raise the number of workers the Glue job uses",
+        "explanation": "More workers finish the full reprocessing sooner, but the job still reads every file and its cost keeps growing."
+      },
+      {
+        "key": "C",
+        "text": "Run the AWS Glue crawler on the prefix more often",
+        "explanation": "A crawler updates table definitions in the Data Catalog; it does not decide which files the ETL job reads."
+      },
+      {
+        "key": "D",
+        "text": "Partition the job's output in the curated bucket by processing date",
+        "explanation": "Partitioning the output helps later queries, but the job still reads the whole input prefix on every run."
+      }
+    ],
+    "explanation": "Job bookmarks persist state from each run so the next run of the job processes only new data; for S3 sources Glue tracks objects by their last-modified time. Extra workers keep reprocessing everything, crawlers only maintain the catalog, and output partitioning does not narrow the input. Read more: https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.5",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d3-54",
+    "categoryKey": "high-performing",
+    "conceptId": "data-lakes",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "Analysts use Amazon Athena on 20 TB of gzip-compressed CSV logs in Amazon S3. Nearly every query filters on the event date and reads 5 of the 150 columns, yet each query scans the whole data set and takes minutes.\n\nWhich TWO changes will reduce the data each query scans? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on S3 Transfer Acceleration for the bucket that holds the logs",
+        "explanation": "Transfer Acceleration speeds long-distance uploads and downloads; Athena reads the data inside the Region and scans the same bytes."
+      },
+      {
+        "key": "B",
+        "text": "Convert the data to Apache Parquet"
+      },
+      {
+        "key": "C",
+        "text": "Turn on query result reuse in the Athena workgroup",
+        "explanation": "Result reuse returns stored results only when the same query runs again; every new query still scans the whole data set."
+      },
+      {
+        "key": "D",
+        "text": "Set a per-query data usage control on the workgroup",
+        "explanation": "A data usage control cancels queries that exceed a limit; it caps cost but does not make the queries read less."
+      },
+      {
+        "key": "E",
+        "text": "Partition the data by event date and filter on that column"
+      }
+    ],
+    "explanation": "In a columnar format such as Parquet, Athena reads only the columns a query names, so 5 of 150 columns means a small fraction of the bytes; partitioning by date lets Athena skip every partition the WHERE clause excludes. Transfer Acceleration does not affect Athena, result reuse helps only repeated queries, and a usage control cancels queries rather than shrinking them. Read more: https://docs.aws.amazon.com/athena/latest/ug/performance-tuning-data-optimization-techniques.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/athena/latest/ug/performance-tuning-data-optimization-techniques.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-3",
+      "task-3.5",
+      "hard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "B",
+      "E"
+    ]
   }
 ]
