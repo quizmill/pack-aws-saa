@@ -7149,7 +7149,7 @@
     "conceptId": "aurora",
     "level": "easy",
     "difficulty": 2,
-    "prompt": "An internal reporting application uses a relational database that is busy for a few hours at the start of each month and nearly idle the rest of the time. The load inside the busy hours is unpredictable. The company wants database capacity that adjusts automatically in small increments instead of paying for a peak-sized instance all month.\n\nWhich solution meets these requirements?",
+    "prompt": "An internal reporting application uses a relational database that is busy for a few hours at the start of each month and nearly idle the rest of the time. The load inside the busy hours is unpredictable. The company wants database capacity that follows the load automatically instead of paying for a peak-sized instance all month.\n\nWhich solution meets these requirements?",
     "options": [
       {
         "key": "A",
@@ -8181,7 +8181,7 @@
     "conceptId": "data-lakes",
     "level": "hard",
     "difficulty": 4,
-    "prompt": "A nightly AWS Glue ETL job reads every file under an Amazon S3 prefix, transforms the data and writes the results to a curated bucket. New files arrive in the prefix every day and old ones are kept, so the job's run time and cost grow each night. Only the files that arrived since the previous run need to be processed.\n\nWhich solution meets these requirements with the LEAST effort?",
+    "prompt": "A nightly AWS Glue ETL job reads every file under an Amazon S3 prefix, transforms the data and writes the results to a curated bucket. New files arrive in the prefix every day and old ones are kept, so the job's run time and cost grow each night. Files never change after they arrive, so each one needs to be processed only once.\n\nWhich solution meets these requirements with the LEAST effort?",
     "options": [
       {
         "key": "A",
@@ -8703,7 +8703,7 @@
       },
       {
         "key": "E",
-        "text": "Create Lake Formation data filters with row filter expressions and excluded columns, and grant them"
+        "text": "Define a Lake Formation data filter for each country and grant it to that country's analysts"
       }
     ],
     "explanation": "Registering the S3 locations with Lake Formation puts the tables under its permission model, which Athena enforces; data filters then combine a row filter expression (country = 'FR') with column exclusions, giving row-, column- and cell-level security without copies. Bucket access defeats views, Macie only finds sensitive data, and DataBrew copies multiply the data. Read more: https://docs.aws.amazon.com/lake-formation/latest/dg/data-filtering.html",
