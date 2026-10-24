@@ -3350,7 +3350,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Create a usage plan with rate and burst limits and associate every client's API key with the plan"
+        "text": "Create a usage plan with rate and burst limits and associate each partner's API key with the plan"
       },
       {
         "key": "B",
@@ -4277,7 +4277,7 @@
         "explanation": "kOps installs Kubernetes on EC2, but the team keeps running the control plane and patching the nodes."
       }
     ],
-    "explanation": "EKS runs the Kubernetes control plane for you, so the existing manifests and Helm charts deploy unchanged, and a Fargate profile runs the pods of matching namespaces on right-sized compute that AWS provisions and patches, with no nodes to manage. Fargate's limits, such as no DaemonSets or privileged containers, don't affect these services. Managed node groups still leave node sizing and AMI updates to the team, ECS needs the manifests rewritten, and kOps leaves the control plane with the team. Read more: https://docs.aws.amazon.com/eks/latest/userguide/fargate.html",
+    "explanation": "EKS runs the Kubernetes control plane for you, so the existing manifests and Helm charts deploy unchanged, and a Fargate profile runs the pods of matching namespaces on right-sized compute that AWS provisions and patches, with no nodes to manage. Fargate's limits, such as no DaemonSets or privileged containers, don't affect these services. EKS Auto Mode, which also manages the nodes, would be another fit but isn't offered here. Managed node groups still leave node sizing and AMI updates to the team, ECS needs the manifests rewritten, and kOps leaves the control plane with the team. Read more: https://docs.aws.amazon.com/eks/latest/userguide/fargate.html",
     "source": "original",
     "sourceRef": "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html",
     "reviewStatus": "draft",
@@ -4382,7 +4382,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Send analytics to a custom endpoint of the two 4xlarge replicas and app reads to one that excludes them"
+        "text": "Send analytics to a custom endpoint of the two 4xlarge replicas and app reads to one with them on its exclusion list"
       },
       {
         "key": "B",
