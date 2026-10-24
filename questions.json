@@ -9775,7 +9775,7 @@
     "conceptId": "hybrid-storage",
     "level": "hard",
     "difficulty": 4,
-    "prompt": "A company must move 40 TB of files from an on-premises NFS server to Amazon EFS within 3 weeks. Its 1 Gbps internet connection is mostly idle at night and at weekends. The transfer must verify data integrity, and it must use less bandwidth during business hours.\n\nWhich solution is the MOST cost-effective?",
+    "prompt": "A company must move 40 TB of files from an on-premises NFS server to Amazon EFS within 3 weeks. Its 1 Gbps internet connection is mostly idle at night and at weekends. The transfer must verify data integrity, and it must use less bandwidth during business hours.\n\nWhich solution meets these requirements with the LEAST operational effort?",
     "options": [
       {
         "key": "A",
@@ -9797,7 +9797,7 @@
         "explanation": "File Gateway writes to S3, not EFS, so the data takes two hops and is stored twice."
       }
     ],
-    "explanation": "AWS DataSync copies from NFS or SMB shares directly to EFS, FSx or S3, verifies integrity, and can limit bandwidth on a schedule. It is billed per GB moved. At 1 Gbps, 40 TB takes days, well within 3 weeks. Direct Connect is slow to provision for a one-off move, a script must rebuild what DataSync already does, and File Gateway lands the data in S3 instead of EFS. Read more: https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
+    "explanation": "AWS DataSync copies from NFS or SMB shares directly to EFS, FSx or S3, verifies integrity, and can limit bandwidth on a schedule. It is billed per GB moved. At 1 Gbps, 40 TB takes days, well within 3 weeks. Direct Connect is slow to provision for a one-off move, a script means building and running retries, verification and throttling yourself, and File Gateway lands the data in S3 instead of EFS. Read more: https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
     "source": "original",
     "sourceRef": "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
     "reviewStatus": "draft",
