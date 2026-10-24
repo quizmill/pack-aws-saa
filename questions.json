@@ -3326,6 +3326,498 @@
     "correctKey": "C"
   },
   {
+    "id": "aws-saa-easy-d2-16",
+    "categoryKey": "resilient",
+    "conceptId": "api-gateway",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company exposes a REST API through Amazon API Gateway to about 40 partner companies, and each partner calls it with its own API key. Last week one partner's batch job sent a burst of requests that overloaded the backend and slowed the API for every other partner. The company wants each partner held to its own request rate and burst limit, with the least change to the backend.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create a usage plan with rate and burst limits and associate every client's API key with the plan"
+      },
+      {
+        "key": "B",
+        "text": "Set the stage's default method throttling to the combined rate the backend can handle",
+        "explanation": "Stage throttling is one shared limit for all callers, so a single partner's burst can still use it up and slow everyone else."
+      },
+      {
+        "key": "C",
+        "text": "Put an Amazon CloudFront distribution in front of the API and cache responses for 60 seconds",
+        "explanation": "Caching helps only repeated cacheable reads; a batch job's distinct requests still reach the backend and no per-partner limit exists."
+      },
+      {
+        "key": "D",
+        "text": "Add an AWS WAF rate-based rule to the API stage that blocks clients above a request count",
+        "explanation": "A rate-based rule blocks a client outright for a while once it crosses the count, rather than shaping each key to a steady rate and burst."
+      }
+    ],
+    "explanation": "A usage plan sets a steady-state rate and a burst limit that API Gateway applies per API key associated with the plan, so a partner that goes over gets 429 Too Many Requests while the others keep their capacity, and the backend is untouched. Stage-level throttling is one shared bucket for every caller, caching does nothing for a batch of distinct requests, and a WAF rate-based rule blocks a client for a period instead of throttling it to a rate and burst. Read more: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-easy-d2-17",
+    "categoryKey": "resilient",
+    "conceptId": "amazon-sqs",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "An order-processing service reads messages from an Amazon SQS standard queue. A few malformed messages make the consumer throw an error every time, so they return to the queue again and again, use up worker time and delay other orders. The team wants such messages set aside automatically after a few failed attempts so it can inspect them later.\n\nWhat should a solutions architect do?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Lower the queue's message retention period so that failing messages expire sooner",
+        "explanation": "Retention deletes the message when the period ends, so there is nothing left to inspect, and it keeps failing until then."
+      },
+      {
+        "key": "B",
+        "text": "Increase the visibility timeout so a failed message stays hidden longer between attempts",
+        "explanation": "A longer timeout only spaces out the retries; the message never leaves the queue and keeps failing."
+      },
+      {
+        "key": "C",
+        "text": "Configure a dead-letter queue with a redrive policy that sets maxReceiveCount to 3"
+      },
+      {
+        "key": "D",
+        "text": "Switch to an SQS FIFO queue so that failed messages are retried in their original order",
+        "explanation": "A FIFO queue keeps a failing message at the head of its message group, which blocks the messages behind it instead of moving it aside."
+      }
+    ],
+    "explanation": "A redrive policy moves a message to the dead-letter queue once its receive count exceeds maxReceiveCount, so poison messages stop consuming workers and stay available for inspection and a later redrive. Shorter retention deletes them, a longer visibility timeout only spaces out the failures, and a FIFO queue makes it worse by holding up the rest of the message group. Read more: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-easy-d2-18",
+    "categoryKey": "resilient",
+    "conceptId": "storage-types",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A logistics company receives daily shipment files from 200 trading partners. The partners send files only over SFTP and refuse to change their tooling. Today the company runs two SFTP servers on Amazon EC2 and copies the files to Amazon S3 with a cron job; the servers need patching and have failed twice this year. The company wants a managed service that writes the files straight to S3.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "AWS DataSync with an agent that copies files from the SFTP servers to S3 every hour",
+        "explanation": "DataSync moves data out of storage you already run, so the EC2 SFTP servers and their patching would stay."
+      },
+      {
+        "key": "B",
+        "text": "AWS Transfer Family with an SFTP server endpoint that stores uploads in an S3 bucket"
+      },
+      {
+        "key": "C",
+        "text": "An Amazon S3 File Gateway whose file share the partners copy their files onto",
+        "explanation": "S3 File Gateway presents NFS or SMB shares rather than SFTP, and it runs as a VM or appliance the company has to operate."
+      },
+      {
+        "key": "D",
+        "text": "Amazon S3 presigned URLs generated for each partner every day for its uploads",
+        "explanation": "Partners would have to switch from SFTP to HTTPS uploads, which they refuse to do."
+      }
+    ],
+    "explanation": "Transfer Family runs a fully managed, highly available SFTP endpoint whose users land files directly in S3, so the EC2 servers and the cron job go away and partners keep their SFTP clients. DataSync still needs the servers, File Gateway speaks NFS and SMB, and presigned URLs change the partners' protocol. Read more: https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d2-19",
+    "categoryKey": "resilient",
+    "conceptId": "rds-availability",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "An e-commerce application uses an Amazon RDS for PostgreSQL DB instance. Analysts run long reporting queries against it during business hours, and the checkout pages slow down while those queries run. The reports can tolerate data that is a few seconds old. The company wants to take the reporting load off the primary with minimal application change.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create a read replica and point the reporting tool at the replica's endpoint"
+      },
+      {
+        "key": "B",
+        "text": "Convert the instance to a Multi-AZ DB instance deployment and run reports on the standby",
+        "explanation": "The standby in a Multi-AZ DB instance deployment serves no reads; it exists only to take over on failover."
+      },
+      {
+        "key": "C",
+        "text": "Scale the DB instance up to a larger instance class at the start of each business day",
+        "explanation": "A bigger instance adds headroom, but reports and checkout still share one database and every class change interrupts it."
+      },
+      {
+        "key": "D",
+        "text": "Add an Amazon ElastiCache cluster in front of the database to cache report results",
+        "explanation": "Long ad hoc reports rarely repeat, so they still run on the primary, and caching needs application code."
+      }
+    ],
+    "explanation": "A read replica receives asynchronous updates from the primary and serves read-only queries on its own endpoint, so pointing the reporting tool there moves the heavy reads off the primary; a few seconds of replica lag is within what the reports accept. A Multi-AZ instance standby takes no traffic, scaling up still mixes the two workloads, and a cache does little for long one-off report queries. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-easy-d2-20",
+    "categoryKey": "resilient",
+    "conceptId": "edge-acceleration",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A media company serves the images and videos for its website from an Amazon S3 bucket in us-east-1. Users in Asia and Europe report slow page loads, and requests to the bucket spike whenever an article goes viral. The company wants faster delivery worldwide and less load on the origin.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on S3 Transfer Acceleration for the bucket and use the accelerated endpoint in the pages",
+        "explanation": "Transfer Acceleration speeds long-distance transfers to and from the bucket but caches nothing, so every view still hits S3."
+      },
+      {
+        "key": "B",
+        "text": "Copy the bucket to a Region on each continent with S3 Cross-Region Replication",
+        "explanation": "Extra copies need their own routing and still serve every request from a bucket; nothing absorbs a viral spike."
+      },
+      {
+        "key": "C",
+        "text": "Put an Amazon CloudFront distribution in front of the bucket and serve the media through it"
+      },
+      {
+        "key": "D",
+        "text": "Place an AWS Global Accelerator accelerator in front of the bucket as its endpoint",
+        "explanation": "Global Accelerator endpoints are load balancers, EC2 instances and Elastic IP addresses, not S3 buckets, and it caches nothing."
+      }
+    ],
+    "explanation": "CloudFront caches the media at edge locations close to viewers, so repeat requests are served from the edge with lower latency and a viral spike mostly lands on the cache instead of on S3. Transfer Acceleration and Global Accelerator speed up the network path without caching, and replicating to several Regions adds copies and routing work while each copy still serves every request. Read more: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-easy-d2-21",
+    "categoryKey": "resilient",
+    "conceptId": "containers",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A team has packaged a stateless web API as a container image. It wants to run the containers on AWS behind an Application Load Balancer and scale the number of copies with demand. The team has nobody to patch operating systems or to size and manage a cluster of servers.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amazon ECS with the EC2 launch type and an Auto Scaling group of container instances",
+        "explanation": "The team would still patch, size and scale the EC2 container instances that the tasks run on."
+      },
+      {
+        "key": "B",
+        "text": "AWS Batch jobs that run the container image on AWS Fargate compute environments",
+        "explanation": "AWS Batch runs jobs that finish, not a long-running service registered behind a load balancer."
+      },
+      {
+        "key": "C",
+        "text": "Amazon EC2 instances in an Auto Scaling group that start the container from user data",
+        "explanation": "The instances are servers the team must patch and size, which is exactly what it wants to avoid."
+      },
+      {
+        "key": "D",
+        "text": "Amazon ECS services on AWS Fargate with Service Auto Scaling"
+      }
+    ],
+    "explanation": "With Fargate, ECS runs each task on capacity that AWS provisions and patches, so the team manages no servers; the ECS service registers its tasks with the ALB target group, and Service Auto Scaling adjusts the task count with demand. The EC2 launch type and plain EC2 instances leave the servers to the team, and AWS Batch runs jobs to completion rather than a service behind a load balancer. Read more: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-easy-d2-22",
+    "categoryKey": "resilient",
+    "conceptId": "caching",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A product catalog application runs on Amazon EC2 and reads product details from an Amazon RDS for MySQL database. The same few thousand products account for most reads, and the database CPU is high even though the data changes only a few times a day. The company wants to cut read latency and database load.\n\nWhat should a solutions architect recommend?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add Amazon ElastiCache and have the application check the cache first, loading from the database on a miss"
+      },
+      {
+        "key": "B",
+        "text": "Move the database to a larger instance class with more memory for its buffer pool",
+        "explanation": "More memory and CPU add headroom, but every read still runs a query on the database."
+      },
+      {
+        "key": "C",
+        "text": "Increase the provisioned IOPS of the DB instance's storage volume",
+        "explanation": "The load is CPU from repeated queries; faster storage leaves every query in place."
+      },
+      {
+        "key": "D",
+        "text": "Convert the DB instance to a Multi-AZ deployment to spread reads across two instances",
+        "explanation": "The standby in a Multi-AZ DB instance deployment serves no reads, so the primary's load is unchanged."
+      }
+    ],
+    "explanation": "With lazy loading the application reads from ElastiCache and queries MySQL only on a cache miss, then writes the result to the cache with a TTL; hot products come from memory in well under a millisecond and most reads never reach the database. A larger instance or faster storage still runs every query, and a Multi-AZ standby serves no reads. Read more: https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-easy-d2-23",
+    "categoryKey": "resilient",
+    "conceptId": "sns-and-eventbridge",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company's applications publish events to an Amazon EventBridge event bus. A new compliance service must receive only the events whose detail-type is \"Account Closed\" and whose region field is \"EU\". Other services already consume the same bus, and the publishers are to stay unchanged.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create an EventBridge rule whose event pattern matches both fields and targets the compliance service"
+      },
+      {
+        "key": "B",
+        "text": "Create a second event bus and have each publisher also send account-closed events to it",
+        "explanation": "Every publisher would have to change its code to send to the second bus."
+      },
+      {
+        "key": "C",
+        "text": "Route every event on the bus to an SNS topic and let the compliance service discard what it doesn't need",
+        "explanation": "The service would receive and process every event on the bus, when a rule's pattern can drop the rest before delivery."
+      },
+      {
+        "key": "D",
+        "text": "Have the compliance service poll the event bus every minute for new account-closed events",
+        "explanation": "An event bus pushes events to rule targets; there is no API for polling a bus for events."
+      }
+    ],
+    "explanation": "A rule's event pattern filters on any fields of the event, here detail-type and the region value, and sends only matching events to its targets, without touching the publishers or the existing rules. A second bus needs publisher changes, forwarding everything makes the service filter in code, and an event bus can't be polled. Read more: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-easy-d2-24",
+    "categoryKey": "resilient",
+    "conceptId": "ec2-auto-scaling",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A web tier runs on Amazon EC2 instances in an Auto Scaling group with a fixed size of six. At night most instances sit idle, and on busy afternoons CPU utilization reaches 90% and response times climb. The company wants the group to add and remove instances on its own to keep average CPU utilization near 50%.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A scheduled action that sets desired capacity to 10 every afternoon and to 3 every night",
+        "explanation": "A schedule guesses at load by the clock and misses busy periods that don't follow it."
+      },
+      {
+        "key": "B",
+        "text": "A target tracking scaling policy on the group's average CPU utilization with a target of 50"
+      },
+      {
+        "key": "C",
+        "text": "A CloudWatch alarm at 90% CPU that sends an SNS notification to the operations team",
+        "explanation": "The alarm tells people about the load; nothing changes the group's capacity automatically."
+      },
+      {
+        "key": "D",
+        "text": "A larger instance type in the launch template so that the six instances have spare CPU",
+        "explanation": "Bigger instances keep a fixed fleet that is even more oversized at night and still has a ceiling."
+      }
+    ],
+    "explanation": "A target tracking policy creates and manages the CloudWatch alarms for you and adjusts the group's capacity so the chosen metric stays near the target value, scaling out on busy afternoons and in at night. A schedule guesses at load instead of measuring it, a notification still leaves the change to people, and bigger instances keep a fixed fleet that is oversized at night. Read more: https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d2-25",
+    "categoryKey": "resilient",
+    "conceptId": "storage-types",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company is moving a self-managed database engine to a single Amazon EC2 instance. The engine needs a raw block device it can format with its own file system, 20,000 provisioned IOPS with consistent low latency, and data that persists when the instance is stopped and started.\n\nWhich storage meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "An Amazon EFS file system mounted on the instance with provisioned throughput",
+        "explanation": "EFS is shared file storage reached over NFS, not a raw block device the engine can format."
+      },
+      {
+        "key": "B",
+        "text": "The instance's NVMe instance store volumes combined in a RAID 0 array",
+        "explanation": "Instance store is fast block storage, but its data is lost when the instance stops."
+      },
+      {
+        "key": "C",
+        "text": "An Amazon S3 bucket mounted on the instance with Mountpoint for Amazon S3",
+        "explanation": "Mountpoint gives file access to S3 objects, with no block device and no in-place random writes for a database."
+      },
+      {
+        "key": "D",
+        "text": "An Amazon EBS Provisioned IOPS SSD (io2) volume attached to the instance"
+      }
+    ],
+    "explanation": "EBS volumes are network-attached block devices whose data persists independently of the instance's life, and io2 lets you provision an IOPS figure with consistent low latency for I/O-heavy databases. EFS is file storage, instance store is lost on stop, and S3 through Mountpoint is object storage with no block device. Read more: https://docs.aws.amazon.com/ebs/latest/userguide/provisioned-iops.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/ebs/latest/userguide/provisioned-iops.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-easy-d2-26",
+    "categoryKey": "resilient",
+    "conceptId": "elastic-load-balancing",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company is splitting a monolith into three microservices that serve /orders, /catalog and /users. Each service runs as its own Amazon ECS service and scales independently. The company wants one public HTTPS endpoint that sends each request to the right service based on the URL path.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A Network Load Balancer with one listener per service, each on a different port",
+        "explanation": "An NLB works at layer 4 and can't read the URL path, so clients would have to call a different port per service."
+      },
+      {
+        "key": "B",
+        "text": "An Application Load Balancer with path-based listener rules, one target group per service"
+      },
+      {
+        "key": "C",
+        "text": "Amazon Route 53 weighted records that each point to a separate load balancer per service",
+        "explanation": "DNS sees host names, never paths, and weights split traffic by ratio rather than by what was requested."
+      },
+      {
+        "key": "D",
+        "text": "A Gateway Load Balancer that forwards traffic to each service's target group in turn",
+        "explanation": "A Gateway Load Balancer passes traffic through inline security appliances; it has no path-based routing."
+      }
+    ],
+    "explanation": "Application Load Balancers work at layer 7, so a listener rule can match a path pattern for /orders and forward to that service's target group, where ECS registers the service's tasks. NLBs route on ports and IP addresses, DNS records see host names rather than paths, and a Gateway Load Balancer chains traffic through security appliances. Read more: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d2-27",
+    "categoryKey": "resilient",
+    "conceptId": "serverless-lambda",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A startup's booking API receives almost no traffic overnight and sudden bursts of thousands of requests when a promotion goes out. Each request finishes in under a second. The team is three developers who want to pay little while the API is idle and to manage no servers or capacity.\n\nWhich architecture meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amazon API Gateway in front of AWS Lambda functions that handle each route"
+      },
+      {
+        "key": "B",
+        "text": "An Application Load Balancer in front of an Auto Scaling group with a minimum of two instances",
+        "explanation": "Two instances run and bill all night, and the team has to patch and size them."
+      },
+      {
+        "key": "C",
+        "text": "Amazon ECS on AWS Fargate with a service that keeps four tasks running",
+        "explanation": "Four always-on tasks bill while idle and don't grow to meet a promotion's burst."
+      },
+      {
+        "key": "D",
+        "text": "Amazon Lightsail instances behind a Lightsail load balancer",
+        "explanation": "Lightsail instances are servers with a fixed monthly price that the team still manages and scales."
+      }
+    ],
+    "explanation": "Lambda runs code only when a request arrives, scales out automatically with concurrent requests and bills per request and duration, and API Gateway is the managed front door, so idle nights cost almost nothing and nobody manages servers. An Auto Scaling group and Lightsail keep servers running and patched, and a fixed number of Fargate tasks neither absorbs bursts nor drops to zero. Read more: https://docs.aws.amazon.com/lambda/latest/dg/welcome.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.1",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
     "id": "aws-saa-easy-d3-1",
     "categoryKey": "high-performing",
     "level": "easy",
