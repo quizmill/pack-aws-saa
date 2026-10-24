@@ -5411,6 +5411,7 @@
   {
     "id": "aws-saa-easy-d3-1",
     "categoryKey": "high-performing",
+    "conceptId": "rds-availability",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A news site uses an Amazon RDS for MySQL DB instance. Monitoring shows that 90% of the database load is SELECT queries from the article pages, and the instance's CPU is saturated during traffic peaks. The application can send read queries to a separate endpoint.\n\nWhich solution improves read performance with the LEAST change to the application?",
@@ -5451,6 +5452,7 @@
   {
     "id": "aws-saa-easy-d3-2",
     "categoryKey": "high-performing",
+    "conceptId": "caching",
     "level": "easy",
     "difficulty": 2,
     "prompt": "An online store's product pages run the same few catalog queries against an Amazon Aurora PostgreSQL cluster thousands of times per second. The data changes only a few times a day. The company wants sub-millisecond responses for these lookups and less load on the database.\n\nWhich solution meets these requirements?",
@@ -5491,6 +5493,7 @@
   {
     "id": "aws-saa-easy-d3-3",
     "categoryKey": "high-performing",
+    "conceptId": "ebs-performance",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A self-managed database on an Amazon EC2 instance needs a single block storage volume that delivers 150,000 IOPS with consistent sub-millisecond latency.\n\nWhich Amazon EBS volume type meets these requirements?",
@@ -5531,6 +5534,7 @@
   {
     "id": "aws-saa-easy-d3-4",
     "categoryKey": "high-performing",
+    "conceptId": "edge-acceleration",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A company serves images and videos from an Amazon S3 bucket in us-east-1. Users in Asia and Europe report slow page loads. The company wants lower latency for these users without managing copies of the content in other Regions.\n\nWhich solution meets these requirements?",
@@ -5571,6 +5575,7 @@
   {
     "id": "aws-saa-hard-d3-5",
     "categoryKey": "high-performing",
+    "conceptId": "s3-performance",
     "level": "hard",
     "difficulty": 4,
     "prompt": "Field teams on several continents upload 5 GB video files over the internet to a single Amazon S3 bucket in us-east-1. Uploads are slow and often fail partway, forcing a full restart.\n\nWhich TWO actions together improve upload speed and reliability? (Select TWO.)",
@@ -5618,6 +5623,7 @@
   {
     "id": "aws-saa-hard-d3-6",
     "categoryKey": "high-performing",
+    "conceptId": "serverless-lambda",
     "level": "hard",
     "difficulty": 4,
     "prompt": "An API is served by an AWS Lambda function that loads a large machine learning model during initialization, which takes about 8 seconds. Every weekday at 09:00 traffic jumps from almost nothing to 200 concurrent requests, and the first users wait for new execution environments to initialize. The company needs consistently low latency from the first request.\n\nWhich solution meets these requirements?",
@@ -5658,6 +5664,7 @@
   {
     "id": "aws-saa-hard-d3-7",
     "categoryKey": "high-performing",
+    "conceptId": "ec2-instance-selection",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A research team runs a tightly coupled computational fluid dynamics job across 16 Amazon EC2 instances. The nodes exchange data constantly, and the job's run time is dominated by network latency between instances.\n\nWhich placement strategy should the team use?",
@@ -5698,6 +5705,7 @@
   {
     "id": "aws-saa-hard-d3-8",
     "categoryKey": "high-performing",
+    "conceptId": "kinesis-streaming",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A mobile game sends player clickstream events at up to 50,000 records per second. A real-time leaderboard, a fraud detector and an archiving job must each read every event independently, and the fraud team must be able to re-read the last 24 hours of events after deploying a new model.\n\nWhich AWS service should ingest the events?",
@@ -5738,6 +5746,7 @@
   {
     "id": "aws-saa-hard-d3-9",
     "categoryKey": "high-performing",
+    "conceptId": "kinesis-streaming",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A company streams JSON telemetry records from thousands of devices and wants them stored in Amazon S3 in Apache Parquet format, partitioned for Amazon Athena queries, within a few minutes of arrival. The team does not want to write or run any transformation code or servers.\n\nWhich solution meets these requirements?",
@@ -5778,6 +5787,7 @@
   {
     "id": "aws-saa-hard-d3-10",
     "categoryKey": "high-performing",
+    "conceptId": "caching",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A gaming company stores player profiles in Amazon DynamoDB. A few popular profiles are read millions of times a minute, and the company needs read latency in microseconds. The developers want to change as little application code as possible.\n\nWhich solution meets these requirements?",
@@ -5818,6 +5828,7 @@
   {
     "id": "aws-saa-hard-d3-11",
     "categoryKey": "high-performing",
+    "conceptId": "network-topology",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A company has 60 VPCs in one Region and a Site-to-Site VPN to its data center. Every VPC must be able to reach every other VPC and the data center, and the network team wants to add new VPCs without touching the existing connections.\n\nWhich solution meets these requirements with the LEAST operational overhead?",
@@ -5858,6 +5869,7 @@
   {
     "id": "aws-saa-veryhard-d3-12",
     "categoryKey": "high-performing",
+    "conceptId": "aurora",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "An Amazon Aurora MySQL cluster has four Aurora Replicas. The application sends its reads to the reader endpoint. A reporting team has started running heavy analytical queries through the same endpoint, and the application's read latency spikes whenever reports run. The company wants the reports isolated on two larger replicas while the application keeps using the others.\n\nWhich solution meets these requirements?",
@@ -5898,6 +5910,7 @@
   {
     "id": "aws-saa-veryhard-d3-13",
     "categoryKey": "high-performing",
+    "conceptId": "file-storage",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "A genomics pipeline runs on hundreds of Linux EC2 instances. Its input data sets live in Amazon S3. The pipeline needs a shared POSIX file system with sub-millisecond latency and hundreds of GB/s of aggregate throughput, which loads files from S3 on first access and exports results back to S3.\n\nWhich storage solution meets these requirements?",
@@ -5938,6 +5951,7 @@
   {
     "id": "aws-saa-veryhard-d3-14",
     "categoryKey": "high-performing",
+    "conceptId": "ec2-auto-scaling",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "A stateless web application runs in an Auto Scaling group. Traffic rises sharply every weekday morning, but the time shifts by up to an hour from week to week, and launches that start after the rise leave users waiting. Unplanned spikes also happen during the day. The team does not want to maintain schedules.\n\nWhich TWO scaling configurations together meet these requirements? (Select TWO.)",
@@ -5985,6 +5999,7 @@
   {
     "id": "aws-saa-veryhard-d3-15",
     "categoryKey": "high-performing",
+    "conceptId": "hybrid-storage",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "A company must move 50 TB of files from an on-premises NFS server to Amazon S3 within one week over its existing 1 Gbps internet connection, which is mostly idle. After the initial copy, changed files must be transferred every night until cutover, with integrity checks, scheduling and monitoring handled by the service.\n\nWhich solution meets these requirements with the LEAST operational overhead?",

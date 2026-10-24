@@ -71,7 +71,7 @@
       "Creating an interface endpoint with private DNS turned off and expecting default SDK endpoints to use it.",
       "Using VPC peering where CIDRs overlap."
     ],
-    "tags": ["domain-1", "task-1.2"]
+    "tags": ["domain-1", "task-1.2", "domain-3", "task-3.4"]
   },
   {
     "id": "waf-and-shield",
@@ -183,7 +183,7 @@
       "Leaving the 30-second default visibility timeout on jobs that run for minutes.",
       "Expecting a FIFO queue to move a poison message aside; it blocks the rest of its message group instead."
     ],
-    "tags": ["domain-2", "task-2.1"]
+    "tags": ["domain-2", "task-2.1", "domain-3", "task-3.2"]
   },
   {
     "id": "messaging-patterns",
@@ -194,7 +194,7 @@
       "Filtering in consumer code when a subscription filter policy or an event pattern can drop messages before delivery.",
       "Expecting a queue or a standard topic to replay old messages to a new consumer; that needs a stream."
     ],
-    "tags": ["domain-2", "task-2.1"]
+    "tags": ["domain-2", "task-2.1", "domain-3", "task-3.2"]
   },
   {
     "id": "step-functions",
@@ -216,7 +216,7 @@
       "Leaving NLB cross-zone load balancing off when targets are spread unevenly across zones.",
       "Relying on load balancer health checks while the Auto Scaling group still uses only EC2 status checks."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.4"]
   },
   {
     "id": "ec2-auto-scaling",
@@ -227,7 +227,7 @@
       "Patching instances in place instead of shipping a new AMI and running an instance refresh.",
       "Raising the minimum size to hide slow start-up instead of using a warm pool."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.2"]
   },
   {
     "id": "rds-availability",
@@ -238,7 +238,7 @@
       "Treating a read replica as automatic failover.",
       "Raising max_connections to absorb Lambda's scale instead of adding RDS Proxy."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.3"]
   },
   {
     "id": "aurora",
@@ -249,7 +249,7 @@
       "Leaving every replica in the same tier when they differ in size or purpose.",
       "Using cross-Region read replicas when the RPO is seconds and the RTO about a minute."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.3"]
   },
   {
     "id": "data-durability",
@@ -315,7 +315,7 @@
       "Using DNS failover where CloudFront origin failover would retry each request.",
       "Using Transfer Acceleration to serve popular content to many viewers."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.2", "task-3.4"]
   },
   {
     "id": "containers",
@@ -326,7 +326,7 @@
       "Moving Kubernetes workloads to ECS and rewriting every manifest.",
       "Using AWS Batch for a long-running service behind a load balancer."
     ],
-    "tags": ["domain-2", "task-2.1"]
+    "tags": ["domain-2", "task-2.1", "domain-3", "task-3.2"]
   },
   {
     "id": "serverless-lambda",
@@ -337,7 +337,7 @@
       "Throttling an SQS-triggered function with reserved concurrency alone, which pushes throttled messages toward the dead-letter queue.",
       "Treating provisioned concurrency as a cap."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.2"]
   },
   {
     "id": "api-gateway",
@@ -359,7 +359,7 @@
       "Expecting DAX to cache strongly consistent reads.",
       "Writing cache-aside code for DynamoDB when swapping in the DAX client would do."
     ],
-    "tags": ["domain-2", "task-2.1"]
+    "tags": ["domain-2", "task-2.1", "domain-3", "task-3.3"]
   },
   {
     "id": "workload-visibility",
@@ -371,5 +371,148 @@
       "Looking in CloudTrail to find which service is slow."
     ],
     "tags": ["domain-2", "task-2.2"]
+  },
+  {
+    "id": "s3-performance",
+    "title": "Amazon S3 performance: prefixes, parallelism and Express One Zone",
+    "body": "- Each prefix in a bucket supports at least 3,500 PUT/COPY/POST/DELETE and 5,500 GET/HEAD requests per second, and a bucket can have any number of prefixes, so spreading keys across prefixes scales request rates.\n- Multipart upload sends parts of a large object in parallel and retries only failed parts; byte-range GETs do the same for downloads.\n- S3 Transfer Acceleration routes long-distance transfers to one bucket through CloudFront edge locations.\n- S3 Express One Zone stores objects in a directory bucket in one Availability Zone you choose, for consistent single-digit millisecond access next to your compute.\n\nRead more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html",
+    "commonMistakes": [
+      "Asking for a request-rate quota increase instead of spreading keys over more prefixes.",
+      "Using Transfer Acceleration to fix request-rate or same-Region latency problems; it only helps distance.",
+      "Forgetting that Express One Zone keeps data in a single Availability Zone."
+    ],
+    "tags": ["domain-3", "task-3.1"]
+  },
+  {
+    "id": "file-storage",
+    "title": "Shared file systems: Amazon EFS and the FSx family",
+    "body": "- Amazon EFS: elastic NFS for Linux, mounted from every Availability Zone. Elastic throughput (the default) scales with the workload and bills for what is read and written; Provisioned throughput fixes a rate; Bursting ties throughput to stored size and credits.\n- FSx for Windows File Server: SMB with Active Directory and NTFS permissions.\n- FSx for Lustre: high-performance parallel file system for Linux HPC and ML, linked to S3 through data repository associations.\n- FSx for NetApp ONTAP: the same data over NFS, SMB and iSCSI, with snapshots and automatic tiering to a capacity pool.\n\nRead more: https://docs.aws.amazon.com/decision-guides/latest/decision-guides/choosing-aws-storage-service.html",
+    "commonMistakes": [
+      "Choosing EFS for Windows clients or FSx for Windows File Server for Linux NFS clients.",
+      "Paying for Provisioned throughput on EFS for a spiky workload that Elastic throughput would serve.",
+      "Missing FSx for NetApp ONTAP when one data set needs both NFS and SMB."
+    ],
+    "tags": ["domain-3", "task-3.1"]
+  },
+  {
+    "id": "ebs-performance",
+    "title": "Amazon EBS volume types and instance storage performance",
+    "body": "- gp3: 3,000 IOPS and 125 MiB/s included at any size; provision more IOPS and throughput independently of capacity. gp2 IOPS grow with volume size.\n- io2 Block Express: the highest IOPS and lowest, most consistent latency, for critical databases.\n- st1 and sc1: HDD for large sequential throughput, not random I/O.\n- An instance can drive no more than its type's EBS-optimized bandwidth and IOPS limit, whatever the volumes provide.\n- Instance store: NVMe disks on the host with very high IOPS at no extra charge, lost when the instance stops or fails, so only for temporary data.\n\nRead more: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html",
+    "commonMistakes": [
+      "Growing a gp2 volume just to get more IOPS instead of moving to gp3.",
+      "Adding volume IOPS when the instance type's EBS limit is the ceiling.",
+      "Putting data that must survive a stop on instance store."
+    ],
+    "tags": ["domain-3", "task-3.1"]
+  },
+  {
+    "id": "hybrid-storage",
+    "title": "Hybrid storage and data transfer: Storage Gateway and DataSync",
+    "body": "- S3 File Gateway: an NFS or SMB share on premises that stores each file as an S3 object, with a local cache of recent data.\n- Volume Gateway: iSCSI block volumes. Cached volumes keep the data in AWS and hot data locally; stored volumes keep all data locally and back it up to AWS as snapshots restorable as EBS volumes.\n- Tape Gateway: virtual tapes for existing backup software.\n- AWS DataSync: an agent-based, scheduled transfer service between on-premises storage (NFS, SMB, HDFS, object) and S3, EFS or FSx, with integrity checks and bandwidth limits.\n\nRead more: https://docs.aws.amazon.com/storagegateway/latest/vgw/WhatIsStorageGateway.html",
+    "commonMistakes": [
+      "Choosing cached volumes when the whole data set must stay available locally.",
+      "Using DataSync for ongoing low-latency file access; it moves data, it is not a share.",
+      "Expecting a Volume Gateway to store files as individual S3 objects."
+    ],
+    "tags": ["domain-3", "task-3.1", "task-3.5"]
+  },
+  {
+    "id": "ec2-instance-selection",
+    "title": "Choosing EC2 instance types and placement",
+    "body": "- General purpose (M, burstable T), compute optimized (C), memory optimized (R, X), storage optimized (I, D) and accelerated computing (P, G, Inf, Trn) families.\n- Burstable T instances earn CPU credits below a baseline; under sustained high CPU a fixed performance instance costs less than unlimited mode and does not throttle.\n- Placement groups: cluster (low latency, one zone) for tightly coupled HPC, partition for large distributed systems, spread for a few critical instances.\n- Elastic Fabric Adapter adds OS-bypass networking for MPI and ML training.\n\nRead more: https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html",
+    "commonMistakes": [
+      "Keeping a burstable instance for a load that runs above its baseline all day.",
+      "Picking compute optimized instances for memory-bound workloads.",
+      "Using a spread placement group when the goal is low inter-node latency."
+    ],
+    "tags": ["domain-3", "task-3.2"]
+  },
+  {
+    "id": "batch-and-emr",
+    "title": "Batch and big data compute: AWS Batch and Amazon EMR",
+    "body": "- AWS Batch queues containerized jobs and provisions EC2 or Fargate capacity in managed compute environments to run them to completion, then scales back down; array jobs fan out many similar jobs.\n- Amazon EMR runs open-source frameworks such as Apache Spark, Hive and Presto on managed clusters (or EMR Serverless), reading data in S3.\n- Lambda suits short, event-driven work: an invocation stops at 15 minutes.\n\nRead more: https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html",
+    "commonMistakes": [
+      "Running long batch jobs as an ECS service, which restarts tasks that exit.",
+      "Picking EMR for independent container jobs that need a scheduler, not Spark.",
+      "Choosing Lambda for jobs that run longer than 15 minutes."
+    ],
+    "tags": ["domain-3", "task-3.2", "task-3.5"]
+  },
+  {
+    "id": "dynamodb-performance",
+    "title": "Amazon DynamoDB capacity, keys and global tables",
+    "body": "- On-demand mode serves traffic as it comes with no capacity planning; provisioned mode (with auto scaling) suits predictable traffic.\n- Each partition delivers up to 3,000 read units and 1,000 write units per second, so the partition key must spread traffic; write sharding adds a random or calculated suffix to a hot key.\n- Query reads one partition key; Scan reads the whole table. Global secondary indexes add other keys and can be created at any time; local secondary indexes share the table's partition key and are defined at creation.\n- Global tables replicate a table to several Regions, each accepting reads and writes.\n\nRead more: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html",
+    "commonMistakes": [
+      "Raising table capacity to fix throttling on one hot partition key.",
+      "Running Scans with filters where a GSI and a Query would do.",
+      "Trying to add a local secondary index to an existing table."
+    ],
+    "tags": ["domain-3", "task-3.3"]
+  },
+  {
+    "id": "database-selection",
+    "title": "Choosing a database type on AWS",
+    "body": "- Relational (Amazon RDS, Aurora): SQL, joins and transactions; Aurora Serverless v2 scales capacity in fine-grained steps for variable load.\n- Key-value (DynamoDB): single-digit millisecond lookups at any scale.\n- In-memory (ElastiCache, MemoryDB): microsecond to sub-millisecond access for caches and fast data.\n- Graph (Neptune): queries that traverse relationships many hops deep.\n- Data warehouse (Redshift): analytical queries over large data sets.\n\nRead more: https://docs.aws.amazon.com/decision-guides/latest/decision-guides/databases-on-aws-how-to-choose.html",
+    "commonMistakes": [
+      "Forcing deep relationship traversals into self-joins instead of a graph database.",
+      "Using a data warehouse for interactive transactional lookups.",
+      "Scaling a relational instance up for workloads that are really key-value lookups."
+    ],
+    "tags": ["domain-3", "task-3.3"]
+  },
+  {
+    "id": "database-migration",
+    "title": "Database migrations with AWS DMS and schema conversion",
+    "body": "- Homogeneous migrations (same engine) can use native tools or AWS DMS directly.\n- Heterogeneous migrations (for example Oracle to Aurora PostgreSQL) first convert the schema and code objects with DMS Schema Conversion or the AWS Schema Conversion Tool.\n- AWS DMS then copies the data with a full load and keeps the target in sync with change data capture (CDC) until a short cutover.\n- DMS on its own creates only tables and primary keys, not secondary indexes, foreign keys or procedures.\n\nRead more: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html",
+    "commonMistakes": [
+      "Letting DMS create the target schema in a heterogeneous migration.",
+      "Running only a full load when the source keeps taking writes until cutover.",
+      "Using an engine's native dump tools across different engines."
+    ],
+    "tags": ["domain-3", "task-3.3"]
+  },
+  {
+    "id": "vpc-design",
+    "title": "VPC design: CIDR blocks, subnet tiers and routing",
+    "body": "- A VPC has a primary IPv4 CIDR block that cannot change; you can associate secondary CIDR blocks to add addresses.\n- A subnet lives in one Availability Zone and its CIDR block cannot be resized after creation.\n- Tiers: public subnets route to an internet gateway (load balancers, NAT gateways); private subnets hold application and database tiers and reach the internet through NAT.\n- Plan non-overlapping ranges up front if networks will ever be peered or joined through a transit gateway.\n\nRead more: https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html",
+    "commonMistakes": [
+      "Planning to resize a subnet or the primary CIDR block in place.",
+      "Reusing the same CIDR block in VPCs that later need to be connected.",
+      "Putting databases in public subnets for convenience."
+    ],
+    "tags": ["domain-3", "task-3.4"]
+  },
+  {
+    "id": "network-topology",
+    "title": "Connecting many networks: Transit Gateway, Direct Connect and PrivateLink",
+    "body": "- AWS Transit Gateway is a Regional hub: VPCs and VPNs attach once and route to each other through its route tables.\n- AWS Direct Connect is a dedicated private connection with consistent performance. A private virtual interface reaches VPCs through virtual private gateways; a transit virtual interface reaches transit gateways through a Direct Connect gateway, across Regions.\n- VPC peering is one-to-one, not transitive, and needs non-overlapping CIDR blocks.\n- AWS PrivateLink exposes a single service to other VPCs through interface endpoints, even with overlapping CIDR blocks.\n\nRead more: https://docs.aws.amazon.com/vpc/latest/tgw/what-is-transit-gateway.html",
+    "commonMistakes": [
+      "Building a peering mesh where a transit gateway would scale.",
+      "Expecting a Direct Connect gateway to route between the VPCs associated with it.",
+      "Using peering or a transit gateway to share one service with networks that overlap."
+    ],
+    "tags": ["domain-3", "task-3.4"]
+  },
+  {
+    "id": "kinesis-streaming",
+    "title": "Streaming data with Amazon Kinesis Data Streams and Data Firehose",
+    "body": "- Kinesis Data Streams keeps records for replay and lets many consumers read the same stream. In provisioned mode each shard takes 1 MB/s or 1,000 records/s of writes; on-demand mode manages shards for you.\n- Shared-throughput consumers split each shard's 2 MB/s of reads; enhanced fan-out gives each registered consumer its own 2 MB/s per shard with about 70 ms propagation.\n- Lambda reads one batch per shard at a time unless you raise the parallelization factor (up to 10), which still keeps each partition key in order.\n- Amazon Data Firehose buffers and delivers streams to S3, Redshift and other destinations, and can convert JSON records to Parquet or ORC.\n\nRead more: https://docs.aws.amazon.com/streams/latest/dev/introduction.html",
+    "commonMistakes": [
+      "Adding shards to fix consumer read contention that enhanced fan-out solves.",
+      "Raising Lambda reserved concurrency when one batch per shard is the limit.",
+      "Using Firehose where consumers need to replay records or read with low latency."
+    ],
+    "tags": ["domain-3", "task-3.5"]
+  },
+  {
+    "id": "data-lakes",
+    "title": "Data lakes: AWS Glue, Amazon Athena, Lake Formation and Quick Sight",
+    "body": "- AWS Glue: crawlers build the Data Catalog; serverless ETL jobs transform data (for example CSV to Parquet), and job bookmarks process only new data on each run.\n- Amazon Athena: serverless SQL on data in S3; columnar formats and partitions cut the data each query scans.\n- AWS Lake Formation: central permissions on catalog databases, tables and columns, with data filters for row- and cell-level security, enforced by Athena and other engines.\n- Amazon Quick Sight: managed BI dashboards on Athena and other sources.\n\nRead more: https://docs.aws.amazon.com/lake-formation/latest/dg/what-is-lake-formation.html",
+    "commonMistakes": [
+      "Trying to hide columns with S3 bucket policies or IAM catalog policies.",
+      "Leaving data as row-based CSV and unpartitioned when queries read few columns and dates.",
+      "Reprocessing the whole input every run instead of using job bookmarks."
+    ],
+    "tags": ["domain-3", "task-3.5"]
   }
 ]
