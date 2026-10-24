@@ -4773,6 +4773,627 @@
     "correctKey": "B"
   },
   {
+    "id": "aws-saa-hard-d2-51",
+    "categoryKey": "resilient",
+    "conceptId": "rds-availability",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An AWS Lambda function writes orders to an Amazon RDS for MySQL Multi-AZ DB instance. During flash sales the function scales to thousands of concurrent executions, the database runs out of connections, and many invocations fail with \"Too many connections\". The company also wants connections to recover faster when the DB instance fails over. Code changes should be minimal.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Raise max_connections in the DB parameter group to the highest value the instance class allows",
+        "explanation": "Each connection uses database memory, so this only moves the limit, and it does nothing for failover recovery."
+      },
+      {
+        "key": "B",
+        "text": "Set reserved concurrency on the function to 50 so it opens fewer database connections",
+        "explanation": "Capping concurrency protects the database by throttling flash-sale orders, and it does nothing for failover recovery."
+      },
+      {
+        "key": "C",
+        "text": "Add a read replica and send half of the function's database connections to it",
+        "explanation": "A read replica accepts no writes, so it can't take any of the order inserts."
+      },
+      {
+        "key": "D",
+        "text": "Put Amazon RDS Proxy between the function and the database and connect through the proxy endpoint"
+      }
+    ],
+    "explanation": "RDS Proxy keeps a pool of database connections and shares them across many Lambda executions, so thousands of invocations need far fewer database connections, and during a Multi-AZ failover it keeps client connections open and sends them to the new primary without waiting for DNS to change. A higher max_connections only moves the ceiling, reserved concurrency throttles orders, and a read replica can't accept writes. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d2-52",
+    "categoryKey": "resilient",
+    "conceptId": "dr-strategies",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company keeps a pilot light disaster recovery environment in us-west-2 for a workload that runs on 400 vCPUs of On-Demand Amazon EC2 instances in us-east-1. During a DR test, the Auto Scaling groups in us-west-2 launched only part of the required capacity, and their activity history showed errors about exceeding the vCPU limit.\n\nWhat should a solutions architect do so the next failover can reach full capacity?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Request On-Demand vCPU quota increases in us-west-2 to match production, using Service Quotas"
+      },
+      {
+        "key": "B",
+        "text": "Raise the maximum size of the Auto Scaling groups in us-west-2 to the production values",
+        "explanation": "The groups tried to launch and were refused by the Regional vCPU quota; a larger maximum hits the same quota."
+      },
+      {
+        "key": "C",
+        "text": "Request the vCPU quota increase in us-east-1 so that it applies to every Region in the account",
+        "explanation": "EC2 quotas are set per Region, so an increase in us-east-1 leaves us-west-2 at its old limit."
+      },
+      {
+        "key": "D",
+        "text": "Purchase a Compute Savings Plan sized for the 400 vCPUs in us-west-2",
+        "explanation": "A Savings Plan lowers the price of usage; it neither raises a quota nor reserves any capacity."
+      }
+    ],
+    "explanation": "EC2 On-Demand instance limits are vCPU quotas set per Region in each account, so a standby Region that normally runs little keeps low quotas until you ask for more; raising them ahead of time through Service Quotas lets the DR environment scale to production size during failover. A larger group maximum still hits the quota, an increase in us-east-1 doesn't carry over, and a Savings Plan is a pricing commitment. Read more: https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d2-53",
+    "categoryKey": "resilient",
+    "conceptId": "ec2-auto-scaling",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "Operators patch the Amazon EC2 instances of a production Auto Scaling group by logging in and running updates. Over time the instances have drifted apart, and a recent manual change took the site down. The company wants each change to ship as a new, tested AMI that replaces instances gradually while at least 90% of capacity stays in service, with an automatic rollback if the new instances fail health checks.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Run AWS Systems Manager Patch Manager on the instances during a weekly maintenance window",
+        "explanation": "Patch Manager automates in-place patching, so instances still change after launch instead of being replaced from a tested image."
+      },
+      {
+        "key": "B",
+        "text": "Point the launch template at the new AMI and start an instance refresh with 90% minimum healthy and rollback"
+      },
+      {
+        "key": "C",
+        "text": "Create an AMI from a patched running instance and make it the launch template's default version",
+        "explanation": "Only instances launched later use the image, so existing ones are never replaced, and an image of a hand-patched instance isn't a tested build."
+      },
+      {
+        "key": "D",
+        "text": "Terminate the instances together so the group relaunches them from the updated launch template",
+        "explanation": "Replacing every instance at once drops capacity far below 90% and offers no rollback."
+      }
+    ],
+    "explanation": "Immutable infrastructure replaces servers instead of changing them: a new launch template version references the tested AMI, and an instance refresh replaces instances in batches while keeping the minimum healthy percentage in service, rolling back to the previous configuration if the refresh fails. Patch Manager patches in place, an AMI set as default only affects future launches, and terminating every instance at once breaks the capacity floor. Read more: https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-instance-refresh.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-instance-refresh.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d2-54",
+    "categoryKey": "resilient",
+    "conceptId": "dr-strategies",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An online booking system runs in eu-west-1 on Amazon EC2 instances behind an Application Load Balancer, with an Amazon Aurora PostgreSQL database. If the Region fails, the business requires an RPO under 1 minute and an RTO of 15 minutes, and the second Region must take some customer traffic as soon as failover starts while it scales up. Running full production capacity in two Regions is too expensive.\n\nWhich disaster recovery strategy meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Backup and restore, copying Aurora snapshots to a second Region every hour",
+        "explanation": "Hourly snapshot copies mean up to an hour of lost bookings, far beyond a 1-minute RPO, and a restore takes hours."
+      },
+      {
+        "key": "B",
+        "text": "Pilot light, with an Aurora global database secondary and the application tier defined at zero instances",
+        "explanation": "The data is current, but the application tier must launch before the Region can serve anyone, so no traffic is taken at once."
+      },
+      {
+        "key": "C",
+        "text": "Warm standby, with an Aurora global database secondary and a small running copy of the application tier"
+      },
+      {
+        "key": "D",
+        "text": "Multi-site active/active, with full production capacity serving traffic in both Regions",
+        "explanation": "Running full capacity in both Regions meets the objectives but is the cost the business has ruled out."
+      }
+    ],
+    "explanation": "Warm standby keeps a scaled-down but fully working copy in the second Region, so after the Aurora global database secondary is promoted (its replication lag is typically under a second) the copy serves traffic at once and scales to full size within the RTO. Hourly snapshots miss the RPO, pilot light has to launch the application tier before it takes any traffic, and active/active runs full capacity in both Regions, which is ruled out on cost. Read more: https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d2-55",
+    "categoryKey": "resilient",
+    "conceptId": "elastic-load-balancing",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A Network Load Balancer is enabled in two Availability Zones. Its target group has 2 instances in AZ A and 6 in AZ B, because capacity for the instance type was short in AZ A. Clients spread evenly across the load balancer's two zonal IP addresses, and the instances in AZ A are overloaded while those in AZ B are mostly idle. The company wants traffic spread evenly across all eight instances.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on cross-zone load balancing for the load balancer or its target group"
+      },
+      {
+        "key": "B",
+        "text": "Switch the target group's routing algorithm to least outstanding requests",
+        "explanation": "Least outstanding requests is an Application Load Balancer algorithm, and it would still balance only within each zone."
+      },
+      {
+        "key": "C",
+        "text": "Raise the target group's deregistration delay so connections drain more slowly",
+        "explanation": "Deregistration delay only governs how long a removed target keeps its in-flight connections."
+      },
+      {
+        "key": "D",
+        "text": "Add a Route 53 weighted record that sends 75% of clients to the AZ B node's IP address",
+        "explanation": "Weighting DNS toward one zone treats the symptom, breaks whenever instance counts change, and works around the load balancer's zonal failover."
+      }
+    ],
+    "explanation": "Each Network Load Balancer node sends traffic only to targets in its own Availability Zone unless cross-zone load balancing is on, and for Network Load Balancers it is off by default, so with clients split evenly between the two nodes the 2 instances in AZ A take half the traffic. With cross-zone load balancing each node spreads traffic across the registered targets in all enabled zones. Least outstanding requests is an ALB setting, deregistration delay affects draining, and DNS weights are a brittle workaround. Read more: https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d2-56",
+    "categoryKey": "resilient",
+    "conceptId": "workload-visibility",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A web application's service-level objective says that 99% of requests must complete in under 1 second. The application runs behind an Application Load Balancer. The team's CloudWatch alarm on the Average statistic of TargetResponseTime stayed in the OK state during an incident in which many users waited several seconds. The team wants an alarm that reflects the objective.\n\nWhich alarm should the team create?",
+    "options": [
+      {
+        "key": "A",
+        "text": "An alarm on the Maximum statistic of TargetResponseTime with a threshold of 1 second",
+        "explanation": "Maximum fires on one slow request in the period, so it alarms even when 99% of requests meet the objective."
+      },
+      {
+        "key": "B",
+        "text": "An alarm on HealthyHostCount falling below the Auto Scaling group's desired capacity",
+        "explanation": "Healthy hosts can still answer slowly; host count says nothing about how long users wait."
+      },
+      {
+        "key": "C",
+        "text": "An alarm on the p99 statistic of TargetResponseTime with a threshold of 1 second"
+      },
+      {
+        "key": "D",
+        "text": "An alarm on the Sum of RequestCount rising above the application's usual daily peak",
+        "explanation": "Request volume can rise without slowing responses, and responses can slow without a rise in volume."
+      }
+    ],
+    "explanation": "An objective about the 99th percentile needs the p99 percentile statistic: TargetResponseTime supports percentiles, and an alarm on p99 above 1 second fires when more than 1% of requests take longer than the objective allows, which an average hides when most requests are fast. Maximum reacts to a single outlier, HealthyHostCount measures availability rather than latency, and RequestCount measures volume. Read more: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d2-57",
+    "categoryKey": "resilient",
+    "conceptId": "dr-strategies",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company runs 40 physical and VMware servers in its data center with a mix of Windows and Linux applications. It wants disaster recovery on AWS with an RPO of seconds and an RTO of minutes, without paying for full-size servers on AWS while it waits, and without changing the applications.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "AWS Backup for the VMware virtual machines, restoring them to Amazon EC2 after a disaster",
+        "explanation": "Scheduled backups give an RPO of hours, restores take longer than minutes, and the physical servers aren't covered."
+      },
+      {
+        "key": "B",
+        "text": "AWS Elastic Disaster Recovery, replicating the servers' disks continuously to a staging area on AWS"
+      },
+      {
+        "key": "C",
+        "text": "AWS Application Migration Service, cutting the servers over to Amazon EC2 and running them there",
+        "explanation": "Application Migration Service moves servers to run on AWS for good, so full-size instances would run and bill all the time."
+      },
+      {
+        "key": "D",
+        "text": "AWS DataSync, copying the servers' file systems to Amazon S3 every 15 minutes",
+        "explanation": "DataSync copies files, not bootable servers, and a 15-minute schedule misses an RPO of seconds."
+      }
+    ],
+    "explanation": "Elastic Disaster Recovery replicates the source servers' disks continuously at block level into a low-cost staging area (small replication servers and EBS volumes) for an RPO of seconds, and launches full-size recovery instances in minutes when you fail over, with no application changes. AWS Backup takes periodic backups with RPOs of hours, Application Migration Service is for moving servers to run on AWS, and DataSync copies files rather than bootable servers. Read more: https://docs.aws.amazon.com/drs/latest/userguide/what-is-drs.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/drs/latest/userguide/what-is-drs.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d2-58",
+    "categoryKey": "resilient",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company requires each Amazon EC2 instance in its production accounts to run the CloudWatch agent with a standard configuration. Instances are launched by many teams from different AMIs, and engineers sometimes stop the agent while troubleshooting. The company wants the agent installed and configured on new instances and restored automatically whenever an instance drifts, without changing the teams' AMIs.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "An AWS Config rule that reports instances where the agent isn't running as noncompliant",
+        "explanation": "A Config rule reports the drift but changes nothing on the instance, so someone still has to fix it."
+      },
+      {
+        "key": "B",
+        "text": "A Systems Manager State Manager association that applies the agent configuration on a schedule"
+      },
+      {
+        "key": "C",
+        "text": "A user data script in each team's launch template that installs the agent at first boot",
+        "explanation": "User data runs only at launch and depends on each team's template, so an agent stopped later stays stopped."
+      },
+      {
+        "key": "D",
+        "text": "An AWS CloudFormation drift detection run every night on the teams' stacks",
+        "explanation": "Drift detection compares resource properties with the template; it can't see software inside the instance."
+      }
+    ],
+    "explanation": "A State Manager association runs an SSM document, such as the one that installs and configures the CloudWatch agent, on every matching managed instance when it first appears and again on a schedule, so new instances get the agent and drifted ones are put back to the defined state. A Config rule only reports, user data runs once at launch, and CloudFormation drift detection doesn't look inside instances. Read more: https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-state.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-state.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-veryhard-d2-59",
+    "categoryKey": "resilient",
+    "conceptId": "aurora",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "An Aurora PostgreSQL cluster has a db.r6g.4xlarge writer and three Aurora Replicas: one db.r6g.4xlarge in a second Availability Zone and two db.r6g.large replicas used for light reporting. During a recent failover Aurora promoted one of the large replicas, and the application struggled until the team failed over again by hand. The company wants Aurora to promote the 4xlarge replica whenever the writer fails.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Point the application at the 4xlarge replica's instance endpoint so it becomes the writer after failover",
+        "explanation": "Which instance an application connects to has no effect on which replica Aurora promotes."
+      },
+      {
+        "key": "B",
+        "text": "Convert the cluster to an Aurora global database so that failover goes to a full-size secondary cluster",
+        "explanation": "A global database adds a cluster in another Region; failover inside this Region still follows the replicas' promotion tiers."
+      },
+      {
+        "key": "C",
+        "text": "Set the 4xlarge replica to promotion tier 0 and the two large replicas to a higher-numbered tier"
+      },
+      {
+        "key": "D",
+        "text": "Turn on Multi-AZ for the cluster so that a standby the size of the writer is kept in another zone",
+        "explanation": "In Aurora, Multi-AZ means a replica in another zone, which the cluster already has; there is no separate standby, and promotion still follows the tiers."
+      }
+    ],
+    "explanation": "When the writer fails, Aurora promotes the replica in the highest-priority tier (tier 0 is the highest), and among replicas in the same tier it picks the largest, so tier 0 for the 4xlarge replica and a higher number for the reporting replicas makes it the target. Connection endpoints don't choose the new writer, a global database is about Region failure, and Aurora's high availability comes from its replicas, not from a separate standby. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d2-60",
+    "categoryKey": "resilient",
+    "conceptId": "rds-availability",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company runs PostgreSQL on Amazon RDS as a Multi-AZ DB instance deployment. It wants failovers to finish faster (typically under 35 seconds), lower write commit latency than with its current synchronous standby, and its standby capacity to serve read traffic. The team must stay on RDS for PostgreSQL rather than move to Aurora.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add two read replicas in other Availability Zones and promote one if the primary fails",
+        "explanation": "Replicas replicate asynchronously and need a manual promotion with an endpoint change, so failover is slower and can lose writes."
+      },
+      {
+        "key": "B",
+        "text": "Keep the Multi-AZ DB instance deployment and put Amazon RDS Proxy in front of it",
+        "explanation": "RDS Proxy shortens reconnection after failover, but the standby still serves no reads and write latency is unchanged."
+      },
+      {
+        "key": "C",
+        "text": "Move the Multi-AZ DB instance deployment to a larger class with Provisioned IOPS storage",
+        "explanation": "More capacity changes neither the failover mechanism nor the standby's inability to serve reads."
+      },
+      {
+        "key": "D",
+        "text": "Convert to a Multi-AZ DB cluster deployment with two readable standby instances"
+      }
+    ],
+    "explanation": "A Multi-AZ DB cluster has a writer and two readable standbys in three Availability Zones, commits once one standby acknowledges the change, and typically fails over in under 35 seconds; the standbys serve reads through the reader endpoint. Read replicas need manual promotion and replicate asynchronously, RDS Proxy speeds up reconnection but leaves the standby unreadable, and a larger instance changes neither failover nor the standby's role. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-veryhard-d2-61",
+    "categoryKey": "resilient",
+    "conceptId": "data-durability",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A financial firm must keep a copy of each new object from an Amazon S3 bucket in us-east-1 in a bucket in us-west-2. Regulators require that 99.99% of new objects be copied within 15 minutes, and the firm wants to be alerted about any object that takes longer. Both buckets are in the same account.\n\nWhich TWO actions should a solutions architect take? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on S3 Transfer Acceleration on the destination bucket in us-west-2",
+        "explanation": "Transfer Acceleration speeds client uploads over long distances; it has no effect on replication."
+      },
+      {
+        "key": "B",
+        "text": "Turn on S3 Versioning on both the source and the destination bucket"
+      },
+      {
+        "key": "C",
+        "text": "Schedule an S3 Batch Replication job every 15 minutes from the source bucket",
+        "explanation": "Batch Replication copies existing objects on demand; it carries no time guarantee and raises no alert for a late object."
+      },
+      {
+        "key": "D",
+        "text": "Configure S3 Event Notifications on the destination bucket for s3:ObjectCreated events",
+        "explanation": "Arrival events say when an object lands, not when one is late; the replication rule's own metrics and events report that."
+      },
+      {
+        "key": "E",
+        "text": "Create a Cross-Region Replication rule with S3 Replication Time Control turned on"
+      }
+    ],
+    "explanation": "Replication needs Versioning on both buckets, and S3 Replication Time Control is designed to replicate 99.99% of new objects within 15 minutes, backed by an SLA; it turns on replication metrics and emits an event for any object that misses the threshold, which can drive an alert. Transfer Acceleration affects client uploads, Batch Replication is for existing objects with no time target, and creation events can't show that an object is late. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-time-control.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-time-control.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "B",
+      "E"
+    ]
+  },
+  {
+    "id": "aws-saa-veryhard-d2-62",
+    "categoryKey": "resilient",
+    "conceptId": "route53-routing",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company runs an active/passive application in us-east-1 and us-west-2 behind Amazon Route 53. During a past regional event, its failover runbook depended on API calls that were slow to take effect and on tooling that ran in the impaired Region. The company wants a failover switch that stays dependable during a regional impairment, works through the Route 53 data plane rather than record changes, and lets operators move traffic deliberately instead of waiting for health checks to fail.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Route 53 failover records with health checks on each Region's load balancer",
+        "explanation": "Failover records move traffic only when health checks fail; an operator who wants to move traffic first has to edit records."
+      },
+      {
+        "key": "B",
+        "text": "A runbook that changes the records' values with the ChangeResourceRecordSets API",
+        "explanation": "Editing records is a Route 53 control-plane operation, the very dependency the company wants out of its failover path."
+      },
+      {
+        "key": "C",
+        "text": "Application Recovery Controller routing controls that drive health checks on the failover records"
+      },
+      {
+        "key": "D",
+        "text": "AWS Global Accelerator traffic dials adjusted by an AWS Lambda function in us-east-1",
+        "explanation": "Traffic dial changes are control-plane API calls, and the function making them runs in the Region that may be impaired."
+      }
+    ],
+    "explanation": "Routing controls in Application Recovery Controller (ARC) are on/off switches that Route 53 reads through health checks, so flipping one changes DNS answers through the highly available data plane, and the cluster's endpoints in five Regions accept the change even when one Region is impaired. Plain failover records move traffic only when health checks fail, editing records is a control-plane operation, and a function in us-east-1 calling the Global Accelerator API depends on the impaired Region and a control plane. Read more: https://docs.aws.amazon.com/r53recovery/latest/dg/routing-control.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/r53recovery/latest/dg/routing-control.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d2-63",
+    "categoryKey": "resilient",
+    "conceptId": "serverless-lambda",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "An AWS Lambda function processes messages from an Amazon SQS queue and writes to a database that handles at most 20 concurrent connections. To protect the database, the team set the function's reserved concurrency to 20. Since then, during bursts many messages land in the dead-letter queue (maxReceiveCount is 3) even though the function never threw an error on them. The team wants the database protected without dead-lettering throttled messages.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Raise the queue's maxReceiveCount to 100 and keep reserved concurrency at 20",
+        "explanation": "A higher count only postpones dead-lettering; the poller still hands over more batches than 20 executions can take, and each throttle uses a receive."
+      },
+      {
+        "key": "B",
+        "text": "Lower the event source mapping's batch size to 1 so that each invocation finishes faster",
+        "explanation": "Smaller batches mean more invocations for the same messages, so the function is throttled even more often."
+      },
+      {
+        "key": "C",
+        "text": "Set the event source mapping's maximum concurrency to 20 instead of relying on reserved concurrency"
+      },
+      {
+        "key": "D",
+        "text": "Configure provisioned concurrency of 20 on the function in place of reserved concurrency",
+        "explanation": "Provisioned concurrency keeps environments initialized but caps nothing, so the function could open more than 20 connections."
+      }
+    ],
+    "explanation": "With reserved concurrency alone, the SQS pollers keep scaling and hand the function more batches than 20 executions can take; throttled batches return to the queue and count as receives, so they reach the dead-letter queue without ever failing. Maximum concurrency on the event source mapping limits how many concurrent invocations the pollers make, so extra messages wait in the queue instead; reserved concurrency, if kept, should be at least that value. A higher maxReceiveCount postpones the problem, smaller batches add invocations, and provisioned concurrency is no cap. Read more: https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-scaling.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-scaling.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-veryhard-d2-64",
+    "categoryKey": "resilient",
+    "conceptId": "multi-az-design",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company is deploying a 30-node Apache Cassandra cluster on Amazon EC2 in one Availability Zone for low latency. Cassandra's rack-aware replication must know which nodes share underlying hardware so that replicas of the same data are kept on separate racks. The company wants large groups of nodes isolated from each other's hardware failures, and each node must be able to learn its group from instance metadata.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A spread placement group that places each of the 30 instances on distinct hardware",
+        "explanation": "A spread placement group holds at most seven running instances per Availability Zone, and it exposes no group a node could use as its rack."
+      },
+      {
+        "key": "B",
+        "text": "A partition placement group with three partitions, each mapped to a Cassandra rack"
+      },
+      {
+        "key": "C",
+        "text": "A cluster placement group that packs the 30 instances close together for low latency",
+        "explanation": "Packing nodes close together raises the chance that one hardware failure takes out many replicas at once."
+      },
+      {
+        "key": "D",
+        "text": "No placement group, relying on Amazon EC2 to spread the instances across hosts",
+        "explanation": "EC2 makes no promise about how instances share hardware and gives the nodes nothing to read as their rack."
+      }
+    ],
+    "explanation": "A partition placement group divides instances into logical partitions whose racks share no hardware with other partitions, and each instance can read its partition number from instance metadata, so a topology-aware database such as Cassandra can map partitions to racks and keep replicas apart. Spread groups cap at seven running instances per zone, cluster groups concentrate failure risk, and without a placement group nothing is known about shared hardware. Read more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-strategies.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-strategies.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-veryhard-d2-65",
+    "categoryKey": "resilient",
+    "conceptId": "edge-acceleration",
+    "level": "veryhard",
+    "difficulty": 5,
+    "prompt": "A company serves a static website and downloadable files through Amazon CloudFront from an S3 bucket in us-east-1, and the content is already copied to a bucket in us-west-2 with Cross-Region Replication. When the us-east-1 bucket returned errors during a recent incident, the site was down until an engineer changed the distribution's origin. The company wants CloudFront to retry failed GET requests against the second bucket automatically, keeping the existing distribution and domain name.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A second CloudFront distribution for the us-west-2 bucket, behind Route 53 failover records",
+        "explanation": "DNS failover reacts to health checks after a delay and moves whole clients; it doesn't retry a failed request against the other bucket."
+      },
+      {
+        "key": "B",
+        "text": "Origin Shield turned on in us-east-1 so cached copies keep serving while the bucket fails",
+        "explanation": "Origin Shield adds a caching layer, but objects that aren't cached or have expired still go to the failing bucket."
+      },
+      {
+        "key": "C",
+        "text": "A Lambda@Edge origin-request function that picks a bucket for each request by viewer location",
+        "explanation": "Choosing a bucket before the request doesn't help when that bucket errors; nothing retries the request elsewhere."
+      },
+      {
+        "key": "D",
+        "text": "An origin group with the two buckets as primary and secondary, failing over on 5xx status codes"
+      }
+    ],
+    "explanation": "An origin group gives a cache behavior a primary and a secondary origin; when the primary returns one of the configured status codes (such as 500, 502, 503 or 504) or can't be reached, CloudFront retries that GET, HEAD or OPTIONS request against the secondary, so failover is automatic and per request within the existing distribution. DNS failover is slower and coarser, Origin Shield only helps for cached objects, and choosing an origin up front doesn't retry on errors. Read more: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/high_availability_origin_failover.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/high_availability_origin_failover.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "veryhard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
     "id": "aws-saa-easy-d3-1",
     "categoryKey": "high-performing",
     "level": "easy",
