@@ -2714,6 +2714,7 @@
   {
     "id": "aws-saa-easy-d2-1",
     "categoryKey": "resilient",
+    "conceptId": "amazon-sqs",
     "level": "easy",
     "difficulty": 2,
     "prompt": "An order web front end calls a back-end fulfillment service directly. During sales the fulfillment service falls behind and the front end times out, losing orders. The company wants the front end to accept orders immediately, have each order processed by exactly one of a scalable pool of fulfillment workers, and keep orders safe while workers catch up.\n\nWhich solution meets these requirements?",
@@ -2754,6 +2755,7 @@
   {
     "id": "aws-saa-easy-d2-2",
     "categoryKey": "resilient",
+    "conceptId": "rds-availability",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A company runs its customer database on a Single-AZ Amazon RDS for MySQL DB instance. If the instance's Availability Zone fails, the database must come back automatically on the same endpoint within a few minutes, without losing committed transactions.\n\nWhich solution meets these requirements?",
@@ -2794,6 +2796,7 @@
   {
     "id": "aws-saa-easy-d2-3",
     "categoryKey": "resilient",
+    "conceptId": "ec2-auto-scaling",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A web application runs on Amazon EC2 instances in an Auto Scaling group behind an Application Load Balancer. Sometimes the application process hangs: the load balancer marks the instance unhealthy and stops sending it traffic, but the instance keeps running and passing EC2 status checks, so the group never replaces it.\n\nWhat should a solutions architect do so that hung instances are replaced automatically?",
@@ -2834,6 +2837,7 @@
   {
     "id": "aws-saa-hard-d2-4",
     "categoryKey": "resilient",
+    "conceptId": "amazon-sqs",
     "level": "hard",
     "difficulty": 4,
     "prompt": "Workers consume messages from an Amazon SQS standard queue with the default 30-second visibility timeout. Processing a message takes up to 2 minutes. The team sees many messages processed two or three times by different workers, which creates duplicate shipments.\n\nWhich change fixes the root cause?",
@@ -2874,6 +2878,7 @@
   {
     "id": "aws-saa-hard-d2-5",
     "categoryKey": "resilient",
+    "conceptId": "messaging-patterns",
     "level": "hard",
     "difficulty": 4,
     "prompt": "When a customer places an order, three independent systems must act on it: billing, shipping and analytics. Each system runs on its own fleet of EC2 instances, processes at its own pace, and can be offline for hours during maintenance without losing any orders. New systems will be added later without changing the order service.\n\nWhich design meets these requirements?",
@@ -2914,6 +2919,7 @@
   {
     "id": "aws-saa-hard-d2-6",
     "categoryKey": "resilient",
+    "conceptId": "route53-routing",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A company runs its application in us-east-1 and keeps a scaled-down standby copy in us-west-2 that must not receive traffic in normal operation. If the primary application becomes unhealthy, users must be sent to us-west-2 automatically through the application's DNS name.\n\nWhich Amazon Route 53 configuration meets these requirements?",
@@ -2954,6 +2960,7 @@
   {
     "id": "aws-saa-hard-d2-7",
     "categoryKey": "resilient",
+    "conceptId": "dr-strategies",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A company needs a disaster recovery plan in a second AWS Region for a business application. The requirements are a recovery point objective (RPO) under 1 minute and a recovery time objective (RTO) of 1 hour, at the lowest ongoing cost.\n\nWhich disaster recovery strategy meets these requirements?",
@@ -2994,6 +3001,7 @@
   {
     "id": "aws-saa-veryhard-d2-8",
     "categoryKey": "resilient",
+    "conceptId": "aurora",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "A global trading platform uses an Amazon Aurora MySQL cluster in eu-west-1. Regulators require it to survive the loss of the entire Region with a recovery point objective of seconds and a recovery time objective of minutes, with replication that does not consume the primary database instances' compute.\n\nWhich solution meets these requirements?",
@@ -3034,6 +3042,7 @@
   {
     "id": "aws-saa-hard-d2-9",
     "categoryKey": "resilient",
+    "conceptId": "multi-az-design",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A web application runs on a single large Amazon EC2 instance and keeps user sessions in the instance's memory. When the instance fails, the site goes down and every user is logged out. The company wants the application to tolerate the loss of an instance or an Availability Zone without logging users out.\n\nWhich TWO changes together meet these requirements? (Select TWO.)",
@@ -3081,6 +3090,7 @@
   {
     "id": "aws-saa-veryhard-d2-10",
     "categoryKey": "resilient",
+    "conceptId": "step-functions",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "An insurance claims process has six steps implemented as AWS Lambda functions. Some steps must be retried with backoff on failure, a failure late in the process must run compensating steps for earlier ones, and one step waits for a human adjuster's approval, which can take up to 5 days. The team wants the process state managed by AWS rather than in its own code.\n\nWhich solution meets these requirements?",
@@ -3121,6 +3131,7 @@
   {
     "id": "aws-saa-veryhard-d2-11",
     "categoryKey": "resilient",
+    "conceptId": "amazon-sqs",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "A payments service sends account events to Amazon SQS. Events for the same account must be processed in the order they were sent, but events for different accounts are independent. Traffic is growing, and the team needs many consumers processing in parallel.\n\nWhich solution meets these requirements?",
@@ -3161,6 +3172,7 @@
   {
     "id": "aws-saa-easy-d2-12",
     "categoryKey": "resilient",
+    "conceptId": "storage-types",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A content management system runs on Linux EC2 instances in an Auto Scaling group across three Availability Zones. All instances must read and write the same set of uploaded files at the same time, and the files must stay available if an Availability Zone fails.\n\nWhich storage solution meets these requirements?",
@@ -3201,6 +3213,7 @@
   {
     "id": "aws-saa-hard-d2-13",
     "categoryKey": "resilient",
+    "conceptId": "data-durability",
     "level": "hard",
     "difficulty": 4,
     "prompt": "A retail application stores shopping carts in an Amazon DynamoDB table in one Region. The company wants users in a second Region to write to a local copy of the table, both copies to keep working if either Region fails, and the ability to restore the table to any second in the last 35 days after an accidental bulk delete.\n\nWhich TWO features together meet these requirements? (Select TWO.)",
@@ -3248,6 +3261,7 @@
   {
     "id": "aws-saa-veryhard-d2-14",
     "categoryKey": "resilient",
+    "conceptId": "edge-acceleration",
     "level": "veryhard",
     "difficulty": 5,
     "prompt": "A company runs an HTTPS application behind Application Load Balancers in us-east-1 and eu-west-1. Enterprise customers allow outbound traffic only to IP addresses on an allow list and will accept exactly two static IP addresses. If one Region fails, traffic must move to the other within a minute, regardless of client DNS caching.\n\nWhich solution meets these requirements?",
@@ -3288,6 +3302,7 @@
   {
     "id": "aws-saa-hard-d2-15",
     "categoryKey": "resilient",
+    "conceptId": "serverless-lambda",
     "level": "hard",
     "difficulty": 4,
     "prompt": "An AWS Lambda function processes images when Amazon S3 sends it object-created events. A small number of invocations fail even after Lambda's automatic retries, and those events are lost. The team wants every event that finally fails to be kept, with its error details, so it can be inspected and reprocessed.\n\nWhich solution meets these requirements?",
@@ -3615,7 +3630,7 @@
   {
     "id": "aws-saa-easy-d2-23",
     "categoryKey": "resilient",
-    "conceptId": "sns-and-eventbridge",
+    "conceptId": "messaging-patterns",
     "level": "easy",
     "difficulty": 2,
     "prompt": "A company's applications publish events to an Amazon EventBridge event bus. A new compliance service must receive only the events whose detail-type is \"Account Closed\" and whose region field is \"EU\". Other services already consume the same bus, and the publishers are to stay unchanged.\n\nWhich solution meets these requirements?",

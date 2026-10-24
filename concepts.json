@@ -173,5 +173,203 @@
       "Relying on each client's TLS settings when the server must refuse plain connections."
     ],
     "tags": ["domain-1", "task-1.3"]
+  },
+  {
+    "id": "amazon-sqs",
+    "title": "Amazon SQS queues",
+    "body": "Amazon SQS is a managed message queue that decouples producers from consumers: a message waits durably until a consumer receives and deletes it.\n\n- The visibility timeout hides a received message; set it longer than the processing time, or the message is delivered again.\n- A dead-letter queue with a redrive policy (maxReceiveCount) sets aside messages that keep failing.\n- Standard queues deliver at least once with best-effort order; FIFO queues keep order within a message group and deduplicate.\n- Scale a worker fleet on backlog per instance (visible messages divided by workers), not on CPU.\n\nRead more: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html",
+    "commonMistakes": [
+      "Expecting several applications to each get a copy of a message from one queue; that needs SNS or EventBridge fan-out.",
+      "Leaving the 30-second default visibility timeout on jobs that run for minutes.",
+      "Expecting a FIFO queue to move a poison message aside; it blocks the rest of its message group instead."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "messaging-patterns",
+    "title": "Choosing SQS, SNS, EventBridge or Kinesis",
+    "body": "- Amazon SQS: a queue; each message is processed by one consumer and then deleted.\n- Amazon SNS: publish/subscribe fan-out; every subscription gets a copy, and a filter policy limits which messages it gets. SNS FIFO topics fan out in order to SQS FIFO queues.\n- Amazon EventBridge: an event bus whose rules match event patterns on any field and route matches to targets; it also receives AWS service and SaaS events.\n- Amazon Kinesis Data Streams: an ordered, replayable log; records with the same partition key keep their order, and each consumer reads at its own position for the retention period.\n\nRead more: https://docs.aws.amazon.com/decision-guides/latest/decision-guides/sns-or-sqs-or-eventbridge.html",
+    "commonMistakes": [
+      "Subscribing an SQS FIFO queue to an SNS standard topic; FIFO queues need a FIFO topic.",
+      "Filtering in consumer code when a subscription filter policy or an event pattern can drop messages before delivery.",
+      "Expecting a queue or a standard topic to replay old messages to a new consumer; that needs a stream."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "step-functions",
+    "title": "AWS Step Functions workflows",
+    "body": "Step Functions orchestrates steps (Lambda functions, AWS service calls, waits for people) as a state machine with built-in Retry and Catch.\n\n- Standard workflows run up to a year with exactly-once execution and are billed per state transition: long-running, auditable processes.\n- Express workflows run up to five minutes and are billed by executions and duration: high-volume event processing (asynchronous runs are at-least-once).\n- A task token lets a workflow wait for an external callback such as a human approval.\n- Distributed Map runs up to 10,000 parallel child workflows over large datasets such as S3 objects; Inline Map runs at most 40 iterations at a time.\n\nRead more: https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html",
+    "commonMistakes": [
+      "Choosing Standard workflows for thousands of short runs a second, where Express costs far less.",
+      "Writing retry and compensation logic inside each function instead of using Retry and Catch.",
+      "Using an Inline Map for millions of items."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "elastic-load-balancing",
+    "title": "Elastic Load Balancing: ALB, NLB and Gateway Load Balancer",
+    "body": "- Application Load Balancer: layer 7 (HTTP/HTTPS); listener rules route by path, host, header or query string to target groups.\n- Network Load Balancer: layer 4 (TCP, UDP, TLS); one static IP address per zone and very high throughput. Cross-zone load balancing is off by default, so each node serves only its own zone's targets.\n- Gateway Load Balancer: passes traffic through fleets of inline appliances such as firewalls.\n- Health checks take unhealthy targets out of rotation, and an Auto Scaling group can use them to replace instances.\n\nRead more: https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html",
+    "commonMistakes": [
+      "Expecting a Network Load Balancer to route by URL path.",
+      "Leaving NLB cross-zone load balancing off when targets are spread unevenly across zones.",
+      "Relying on load balancer health checks while the Auto Scaling group still uses only EC2 status checks."
+    ],
+    "tags": ["domain-2", "task-2.1", "task-2.2"]
+  },
+  {
+    "id": "ec2-auto-scaling",
+    "title": "Amazon EC2 Auto Scaling",
+    "body": "- Spread a group over several Availability Zones; it balances instances across them and replaces unhealthy ones.\n- Turn on ELB health checks so that instances the load balancer marks unhealthy are replaced, not only those failing EC2 status checks.\n- Target tracking keeps a metric (CPU, requests per target, queue backlog per instance) near a target value; scheduled actions cover known peaks.\n- Warm pools keep pre-initialized instances stopped and ready, cutting scale-out time for slow-starting applications.\n- Instance refresh replaces instances from a new launch template version in batches, with a minimum healthy percentage and rollback.\n\nRead more: https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html",
+    "commonMistakes": [
+      "Scaling a queue-worker fleet on CPU instead of backlog per instance.",
+      "Patching instances in place instead of shipping a new AMI and running an instance refresh.",
+      "Raising the minimum size to hide slow start-up instead of using a warm pool."
+    ],
+    "tags": ["domain-2", "task-2.1", "task-2.2"]
+  },
+  {
+    "id": "rds-availability",
+    "title": "Amazon RDS: Multi-AZ, read replicas and RDS Proxy",
+    "body": "- Multi-AZ DB instance: a synchronous standby in another zone and automatic failover on the same endpoint; the standby serves no reads.\n- Multi-AZ DB cluster: a writer and two readable standbys in three zones, lower write latency, and failover typically under 35 seconds.\n- Read replicas: asynchronous copies with their own endpoints that offload reads, in the same or another Region; promoting one is a manual step.\n- RDS Proxy pools and shares database connections (for example across Lambda executions) and keeps client connections open during a failover.\n\nRead more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html",
+    "commonMistakes": [
+      "Sending reports to the standby of a Multi-AZ DB instance deployment.",
+      "Treating a read replica as automatic failover.",
+      "Raising max_connections to absorb Lambda's scale instead of adding RDS Proxy."
+    ],
+    "tags": ["domain-2", "task-2.1", "task-2.2"]
+  },
+  {
+    "id": "aurora",
+    "title": "Amazon Aurora availability and endpoints",
+    "body": "- Aurora Replicas share the cluster's storage, which keeps copies across several Availability Zones, and are the failover targets.\n- When the writer fails, Aurora promotes the replica in the highest-priority tier (tier 0 is highest), and the largest replica within a tier.\n- Endpoints: cluster (the writer), reader (load-balances across replicas), instance, and custom endpoints for a chosen set of instances, defined by a static or an exclusion list.\n- An Aurora global database replicates to secondary Regions, typically with under a second of lag, for Region-level recovery.\n\nRead more: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+    "commonMistakes": [
+      "Expecting the reader endpoint to keep analytics and application reads on separate replicas.",
+      "Leaving every replica in the same tier when they differ in size or purpose.",
+      "Using cross-Region read replicas when the RPO is seconds and the RTO about a minute."
+    ],
+    "tags": ["domain-2", "task-2.1", "task-2.2"]
+  },
+  {
+    "id": "data-durability",
+    "title": "Keeping data durable: replication, snapshots and point-in-time recovery",
+    "body": "- Amazon S3 stores objects across several Availability Zones in a Region. Cross-Region Replication (Versioning on both buckets) adds a copy in another Region, and Replication Time Control adds a 15-minute target with metrics and late-object events.\n- EBS volumes live in one zone; snapshots, scheduled with Data Lifecycle Manager or AWS Backup, are how you restore them elsewhere.\n- DynamoDB point-in-time recovery restores a table to any second in its recovery window, and global tables keep active replicas in several Regions.\n\nRead more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html",
+    "commonMistakes": [
+      "Treating replication as a backup: overwrites and bad writes replicate too.",
+      "Assuming S3 Standard's multi-AZ storage protects against losing a Region.",
+      "Writing snapshot scripts when Data Lifecycle Manager or AWS Backup schedules and expires snapshots."
+    ],
+    "tags": ["domain-2", "task-2.2"]
+  },
+  {
+    "id": "multi-az-design",
+    "title": "Removing single points of failure across Availability Zones",
+    "body": "An Availability Zone is one or more data centers with independent power and networking, and each Region has several. A zonal resource fails with its zone.\n\n- Run every tier in at least two zones: Auto Scaling groups across zones, load balancers enabled in each, Multi-AZ databases.\n- Zonal resources are needed once per zone: a zonal NAT gateway in each zone, with each zone's route table pointing at its own (or a regional NAT gateway).\n- Placement groups: cluster (low latency, shared fate), spread (each instance on distinct hardware, at most seven per zone), partition (groups of racks isolated from each other, with the partition number in instance metadata).\n\nRead more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+    "commonMistakes": [
+      "Scaling one instance up instead of scaling out across zones.",
+      "Sharing one zonal NAT gateway across every zone's private subnets.",
+      "Using a cluster placement group for nodes that must not fail together."
+    ],
+    "tags": ["domain-2", "task-2.2"]
+  },
+  {
+    "id": "dr-strategies",
+    "title": "Disaster recovery strategies: RPO, RTO and cost",
+    "body": "RPO is how much data loss is acceptable; RTO is how long recovery may take. From cheapest and slowest to costliest and fastest:\n\n- Backup and restore: copy backups to another Region and rebuild after a disaster; RPO and RTO in hours.\n- Pilot light: data replicates continuously and core infrastructure is defined, but the application tier is off until failover; RTO in tens of minutes.\n- Warm standby: a scaled-down working copy takes traffic at once and then scales up; RTO in minutes.\n- Multi-site active/active: full capacity in each Region; near-zero RTO.\n\nRaise service quotas in the DR Region ahead of time. AWS Elastic Disaster Recovery covers servers that can't be changed.\n\nRead more: https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+    "commonMistakes": [
+      "Choosing active/active for a workload whose objectives are measured in hours.",
+      "Forgetting that a quiet DR Region keeps its default service quotas.",
+      "Choosing pilot light when the second Region must take traffic the moment failover starts."
+    ],
+    "tags": ["domain-2", "task-2.2"]
+  },
+  {
+    "id": "route53-routing",
+    "title": "Route 53 routing policies and failover",
+    "body": "- Failover: active/passive; the secondary record is returned only when the primary's health check fails.\n- Latency: each user goes to the Region with the lowest latency for them; with health checks, unhealthy Regions are skipped.\n- Weighted: split traffic by ratio, for example for canary releases. Geolocation and geoproximity route by where users are.\n- Alias records to AWS resources can use Evaluate Target Health instead of a separate health check.\n- Application Recovery Controller routing controls are on/off switches read through health checks, for operator-driven failover through the data plane.\n\nRead more: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy.html",
+    "commonMistakes": [
+      "Using failover routing when both Regions should serve traffic.",
+      "Using geolocation routing when the requirement is the lowest latency.",
+      "Relying on record edits, a control-plane action, as the failover switch during a regional event."
+    ],
+    "tags": ["domain-2", "task-2.2"]
+  },
+  {
+    "id": "storage-types",
+    "title": "Object, file and block storage on AWS",
+    "body": "- Object: Amazon S3, reached over HTTP, scales without limits, designed for 11 nines of durability; not a block device.\n- File: Amazon EFS (NFS for Linux, Regional across zones, shared by many instances); FSx for Windows File Server (SMB, NTFS, Active Directory, Multi-AZ option); FSx for Lustre (high-performance Linux).\n- Block: Amazon EBS (one zone, persists independently of the instance; io2 for provisioned IOPS) and instance store (fastest, lost when the instance stops).\n- AWS Transfer Family puts managed SFTP, FTPS and FTP endpoints in front of S3 or EFS.\n\nRead more: https://docs.aws.amazon.com/decision-guides/latest/decision-guides/choosing-aws-storage-service.html",
+    "commonMistakes": [
+      "Sharing an EBS volume across zones; Multi-Attach works only within one zone.",
+      "Choosing EFS for Windows SMB shares.",
+      "Keeping data that must survive a stop on instance store."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "edge-acceleration",
+    "title": "Amazon CloudFront and AWS Global Accelerator",
+    "body": "- CloudFront caches content at edge locations, offloading the origin and cutting latency for HTTP(S). An origin group retries failed GET, HEAD and OPTIONS requests against a secondary origin.\n- Global Accelerator gives two static anycast IP addresses that carry TCP and UDP traffic over the AWS network to the nearest healthy endpoint (ALB, NLB, EC2 instance or Elastic IP) across Regions; it caches nothing.\n- S3 Transfer Acceleration speeds long-distance uploads and downloads to one bucket, also without caching.\n\nRead more: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html",
+    "commonMistakes": [
+      "Expecting Global Accelerator to cache content or to front an S3 bucket.",
+      "Using DNS failover where CloudFront origin failover would retry each request.",
+      "Using Transfer Acceleration to serve popular content to many viewers."
+    ],
+    "tags": ["domain-2", "task-2.1", "task-2.2"]
+  },
+  {
+    "id": "containers",
+    "title": "Containers on AWS: ECS, EKS and Fargate",
+    "body": "- Amazon ECS: AWS's own orchestrator; a service keeps a number of tasks running, registers them with a load balancer and scales with Service Auto Scaling.\n- Amazon EKS: a managed Kubernetes control plane; existing manifests and Helm charts work unchanged.\n- Capacity: EC2 instances that you manage, or AWS Fargate, where AWS provisions and patches the compute (on EKS, Fargate runs no DaemonSets or privileged pods).\n- AWS App2Container analyzes running Java and .NET applications and generates container images and deployment artifacts.\n\nRead more: https://docs.aws.amazon.com/decision-guides/latest/decision-guides/choosing-aws-container-service.html",
+    "commonMistakes": [
+      "Choosing the EC2 launch type when nobody can manage servers.",
+      "Moving Kubernetes workloads to ECS and rewriting every manifest.",
+      "Using AWS Batch for a long-running service behind a load balancer."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "serverless-lambda",
+    "title": "AWS Lambda scaling and failure handling",
+    "body": "- Lambda scales by running more concurrent executions; reserved concurrency caps and guarantees a function's share, and provisioned concurrency keeps environments initialized.\n- Asynchronous invocations (such as from S3 or SNS) are retried twice; an on-failure destination or a dead-letter queue keeps the events that still fail.\n- SQS event source mappings: report partial batch failures with ReportBatchItemFailures, and limit pollers with maximum concurrency rather than reserved concurrency alone.\n- Put RDS Proxy in front of a relational database that many executions connect to.\n\nRead more: https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html",
+    "commonMistakes": [
+      "Failing a whole SQS batch when one message fails.",
+      "Throttling an SQS-triggered function with reserved concurrency alone, which pushes throttled messages toward the dead-letter queue.",
+      "Treating provisioned concurrency as a cap."
+    ],
+    "tags": ["domain-2", "task-2.1", "task-2.2"]
+  },
+  {
+    "id": "api-gateway",
+    "title": "Amazon API Gateway throttling and caching",
+    "body": "- Throttling uses a token bucket (a rate and a burst) at account, stage, method and per-client levels; clients over the limit get 429 Too Many Requests.\n- Usage plans with API keys give each client its own rate, burst and quota.\n- Stage caching stores responses for a TTL (300 seconds by default, up to 3,600) per cache key; add the query string or header parameters that change the response to the cache key.\n\nRead more: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html",
+    "commonMistakes": [
+      "Relying on stage throttling to stop one client from starving the others.",
+      "Caching without the parameters that change the response in the cache key.",
+      "Treating API keys as authentication; they identify clients for usage plans."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "caching",
+    "title": "Caching strategies: ElastiCache and DAX",
+    "body": "- Lazy loading (cache-aside): read the cache, query the database on a miss, then fill the cache; only requested data is cached, but each miss costs extra round trips.\n- Write-through: update the cache whenever the database is written; data isn't stale, but unread data fills the cache.\n- Add a TTL to bound staleness either way.\n- DynamoDB Accelerator (DAX) is an API-compatible in-memory cache for DynamoDB with microsecond reads of eventually consistent data; strongly consistent reads pass through to the table.\n\nRead more: https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html",
+    "commonMistakes": [
+      "Scaling up the database for read-heavy hot data instead of caching it.",
+      "Expecting DAX to cache strongly consistent reads.",
+      "Writing cache-aside code for DynamoDB when swapping in the DAX client would do."
+    ],
+    "tags": ["domain-2", "task-2.1"]
+  },
+  {
+    "id": "workload-visibility",
+    "title": "Workload visibility: X-Ray and CloudWatch metrics",
+    "body": "- AWS X-Ray traces individual requests across services (API Gateway, Lambda, SDK calls) and shows a trace map with the time spent and the errors in each.\n- CloudWatch metrics and alarms watch aggregates; pick the statistic that matches the business objective, such as p99 latency for a 99th-percentile target.\n- Load balancer metrics such as TargetResponseTime, HTTPCode_Target_5XX_Count and HealthyHostCount describe what users experience.\n\nRead more: https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html",
+    "commonMistakes": [
+      "Alarming on the Average statistic when the objective is a percentile.",
+      "Alarming on Maximum, which fires on a single outlier.",
+      "Looking in CloudTrail to find which service is slow."
+    ],
+    "tags": ["domain-2", "task-2.2"]
   }
 ]
