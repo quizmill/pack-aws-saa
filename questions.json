@@ -9604,5 +9604,750 @@
       "scenario"
     ],
     "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d4-37",
+    "categoryKey": "cost-optimized",
+    "conceptId": "hybrid-storage",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company backs up its on-premises servers to a physical tape library with commercial backup software. Tapes are shipped offsite and kept for 10 years, and restores from old tapes are rare and can wait a day. The company wants to stop buying and handling tapes without changing its backup software or its backup jobs.\n\nWhich solution is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Deploy Tape Gateway so the backup software writes virtual tapes that are archived to S3 Glacier Deep Archive"
+      },
+      {
+        "key": "B",
+        "text": "Deploy S3 File Gateway and point the backup jobs at an SMB share that stores the files in S3 Standard",
+        "explanation": "The jobs would have to change from a tape target to a file share, and S3 Standard is a costly place for 10-year retention."
+      },
+      {
+        "key": "C",
+        "text": "Deploy Volume Gateway with cached volumes and keep a daily EBS snapshot of each volume for 10 years",
+        "explanation": "The jobs would have to write to disk volumes, and a decade of snapshots costs far more than archive storage."
+      },
+      {
+        "key": "D",
+        "text": "Copy the backup files to Amazon S3 with AWS DataSync and add a lifecycle rule to S3 Glacier Deep Archive",
+        "explanation": "The backup software would first need a disk target for DataSync to copy from, which changes the backup jobs."
+      }
+    ],
+    "explanation": "Tape Gateway presents an iSCSI virtual tape library that existing backup software uses as it would a physical one. Tapes the software ejects are archived to S3 Glacier Flexible Retrieval or S3 Glacier Deep Archive, and Deep Archive is the lowest-cost choice for tapes that are rarely retrieved. The file share, volume and DataSync options all require the backup jobs to change, and two of them keep the data in costlier storage. Read more: https://docs.aws.amazon.com/storagegateway/latest/tgw/WhatIsStorageGateway.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/storagegateway/latest/tgw/WhatIsStorageGateway.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d4-38",
+    "categoryKey": "cost-optimized",
+    "conceptId": "ebs-cost",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A database server uses a 1 TiB Provisioned IOPS SSD (io1) volume provisioned with 10,000 IOPS. Monitoring shows it needs at most a steady 10,000 IOPS and 250 MiB/s, and single-digit millisecond latency is fine for it. The company wants to cut the volume's cost without lowering its performance or taking the server down.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the data to a 4 TiB gp2 volume, whose baseline of 3 IOPS per GiB reaches 12,000 IOPS",
+        "explanation": "gp2 ties IOPS to size, so it pays for 3 TiB of storage nobody needs; gp3 buys the IOPS directly for less."
+      },
+      {
+        "key": "B",
+        "text": "Modify the volume to io2 with the same 10,000 provisioned IOPS",
+        "explanation": "io2 is priced like io1 for storage and IOPS at this level, so the bill barely changes."
+      },
+      {
+        "key": "C",
+        "text": "Modify the volume to gp3 and provision 10,000 IOPS and 250 MiB/s of throughput"
+      },
+      {
+        "key": "D",
+        "text": "Move the data to a Throughput Optimized HDD (st1) volume sized for 250 MiB/s",
+        "explanation": "st1 is an HDD type built for large sequential I/O and caps out at 500 IOPS, far below the 10,000 needed."
+      }
+    ],
+    "explanation": "gp3 includes 3,000 IOPS and 125 MiB/s at any size and lets you provision more IOPS and throughput independently of capacity, at a lower price per GB and per IOPS than io1. Elastic Volumes changes the type in place while the volume stays attached. A large gp2 volume pays for unneeded capacity, io2 costs about the same as io1 here, and st1 cannot deliver the IOPS. Read more: https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d4-39",
+    "categoryKey": "cost-optimized",
+    "conceptId": "file-storage",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company is moving 60 TB of Windows home directories and departmental shares to AWS. Users reach them over SMB with Active Directory permissions, access is light and mostly sequential, and many files are duplicated across departments. The company wants a fully managed file system with the lowest storage cost.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Amazon FSx for Windows File Server on SSD storage sized for 60 TB",
+        "explanation": "SSD storage costs more per GB and is meant for latency-sensitive workloads, which light home-directory access is not."
+      },
+      {
+        "key": "B",
+        "text": "Amazon FSx for Windows File Server on HDD storage with data deduplication turned on"
+      },
+      {
+        "key": "C",
+        "text": "Amazon EFS with a lifecycle policy to EFS Infrequent Access",
+        "explanation": "EFS is an NFS file system for Linux clients; it does not serve SMB shares with Active Directory permissions."
+      },
+      {
+        "key": "D",
+        "text": "Amazon S3 File Gateway on an EC2 instance with the shares stored in S3 Standard-IA",
+        "explanation": "A gateway on EC2 is a server to run and patch, and every file read from Standard-IA pays a retrieval fee."
+      }
+    ],
+    "explanation": "FSx for Windows File Server serves SMB shares with Active Directory integration as a managed service. HDD storage is the lower-cost option for general-purpose shares such as home directories, and data deduplication stores duplicated data once, which typically saves a large share of capacity on general file shares. SSD costs more than this access pattern needs, EFS does not speak SMB, and a self-run gateway is not a managed file system. Read more: https://docs.aws.amazon.com/fsx/latest/WindowsGuide/managing-storage-configuration.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/managing-storage-configuration.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d4-40",
+    "categoryKey": "cost-optimized",
+    "conceptId": "ebs-cost",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company snapshots each of its 200 Amazon EBS volumes at the end of every month and must keep every monthly snapshot for 7 years. Monthly snapshots older than 3 months are restored perhaps once a year, and such a restore can take up to three days. Daily snapshots kept for 14 days cover everyday restores.\n\nWhich solution lowers snapshot storage cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Copy the monthly snapshots to a Region with a lower snapshot price and delete the originals",
+        "explanation": "Snapshot prices differ little between Regions, and the copy adds cross-Region transfer charges."
+      },
+      {
+        "key": "B",
+        "text": "Delete each monthly snapshot after 3 months and rely on the daily snapshots for restores",
+        "explanation": "The daily snapshots last 14 days, so deleting the monthly ones breaks the 7-year retention."
+      },
+      {
+        "key": "C",
+        "text": "Create a monthly AMI of each instance in place of the volume snapshots",
+        "explanation": "An AMI is backed by EBS snapshots billed at the same rate, so nothing gets cheaper."
+      },
+      {
+        "key": "D",
+        "text": "Have Amazon Data Lifecycle Manager move monthly snapshots to the snapshot archive tier"
+      }
+    ],
+    "explanation": "The EBS snapshot archive tier costs up to 75% less for snapshots kept 90 days or longer that are rarely accessed, such as monthly compliance snapshots, and Data Lifecycle Manager can archive them on a schedule. Restoring an archived snapshot takes up to 72 hours, within the three days allowed. Snapshot prices barely differ by Region, deleting snapshots breaks retention, and AMIs are billed as the same snapshots. Read more: https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-archive.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-archive.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d4-41",
+    "categoryKey": "cost-optimized",
+    "conceptId": "hybrid-storage",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company must move 40 TB of files from an on-premises NFS server to Amazon EFS within 3 weeks. Its 1 Gbps internet connection is mostly idle at night and at weekends. The transfer must verify data integrity, and it must use less bandwidth during business hours.\n\nWhich solution is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Order a 10 Gbps AWS Direct Connect dedicated connection and copy the files over it",
+        "explanation": "A dedicated connection takes weeks to provision and pays port hours for a one-off move the existing link can carry."
+      },
+      {
+        "key": "B",
+        "text": "Mount the file system over a Site-to-Site VPN and copy the files with a scheduled rsync script",
+        "explanation": "A copy script needs its own retries, integrity checks and throttling, and the VPN adds hourly charges."
+      },
+      {
+        "key": "C",
+        "text": "Run an AWS DataSync agent in the data center with a task to EFS and a throttle schedule"
+      },
+      {
+        "key": "D",
+        "text": "Copy the files into Amazon S3 through S3 File Gateway, then load them from S3 into EFS",
+        "explanation": "File Gateway writes to S3, not EFS, so the data takes two hops and is stored twice."
+      }
+    ],
+    "explanation": "AWS DataSync copies from NFS or SMB shares directly to EFS, FSx or S3, verifies integrity, and can limit bandwidth on a schedule. It is billed per GB moved. At 1 Gbps, 40 TB takes days, well within 3 weeks. Direct Connect is slow to provision for a one-off move, a script must rebuild what DataSync already does, and File Gateway lands the data in S3 instead of EFS. Read more: https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.1",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d4-42",
+    "categoryKey": "cost-optimized",
+    "conceptId": "elastic-load-balancing",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company hosts 25 small internal web applications, each in its own Auto Scaling group behind its own Application Load Balancer. Every application has its own host name under one domain. The load balancers' hourly charges now cost more than the instances. The applications must keep their host names and HTTPS.\n\nWhich solution reduces cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Use one Application Load Balancer with host-based listener rules that forward to each app's target group"
+      },
+      {
+        "key": "B",
+        "text": "Use one Network Load Balancer with a TCP listener on a different port for each application",
+        "explanation": "Users would have to add port numbers to URLs, since a TCP listener cannot route requests by host name."
+      },
+      {
+        "key": "C",
+        "text": "Replace each Application Load Balancer with a Network Load Balancer",
+        "explanation": "Network Load Balancers also bill per hour and per capacity unit, so 25 of them still cost about the same."
+      },
+      {
+        "key": "D",
+        "text": "Use one Gateway Load Balancer that forwards to each application's Auto Scaling group",
+        "explanation": "A Gateway Load Balancer distributes traffic to inspection appliances; it does not route HTTP requests by host."
+      }
+    ],
+    "explanation": "An Application Load Balancer listener can hold many rules, and a host-header condition sends each host name to its own target group. A wildcard or SNI certificate keeps HTTPS for every name, so one load balancer replaces 25 hourly charges. A Network Load Balancer cannot route by host name, swapping load balancer types keeps 25 of them, and a Gateway Load Balancer is for appliances. Read more: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d4-43",
+    "categoryKey": "cost-optimized",
+    "conceptId": "compute-right-sizing",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An in-memory analytics service runs on one c5.4xlarge instance (16 vCPUs, 32 GiB). It holds its whole dataset in one process, needs about 60 GiB of memory, and uses under four vCPUs of CPU. Today it spills to disk and slows down, so the team plans to move to c5.9xlarge (36 vCPUs, 72 GiB).\n\nWhich instance meets the memory need at the LOWEST cost?",
+    "options": [
+      {
+        "key": "A",
+        "text": "c5.9xlarge, compute optimized, with 36 vCPUs and 72 GiB as planned",
+        "explanation": "It pays for 36 vCPUs to get the memory, when the service uses under four."
+      },
+      {
+        "key": "B",
+        "text": "m5.4xlarge, general purpose, with 16 vCPUs and 64 GiB",
+        "explanation": "It fits the memory but still pays for 16 vCPUs; a memory optimized size with fewer vCPUs costs less."
+      },
+      {
+        "key": "C",
+        "text": "Two c5.4xlarge instances behind a load balancer, 64 GiB in total",
+        "explanation": "The dataset lives in one process, so memory split across two instances does not help, and it pays for 32 vCPUs."
+      },
+      {
+        "key": "D",
+        "text": "r5.2xlarge, memory optimized, with 8 vCPUs and 64 GiB"
+      }
+    ],
+    "explanation": "Memory optimized R instances carry about 8 GiB per vCPU, against 4 GiB for general purpose M and 2 GiB for compute optimized C. A memory-bound process with little CPU need is cheapest on the smallest R size that holds its memory, here r5.2xlarge. The C and M choices buy vCPUs the service does not use, and scaling out does not help a single-process dataset. Read more: https://docs.aws.amazon.com/ec2/latest/instancetypes/mo.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/ec2/latest/instancetypes/mo.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d4-44",
+    "categoryKey": "cost-optimized",
+    "conceptId": "containers",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A transcoding job starts whenever a file lands in an Amazon S3 bucket. Each job runs for 30 to 50 minutes in a container, about 20 jobs arrive a day at random times, and today they run on an always-on EC2 instance that sits idle most of the day. The company wants to pay only while jobs run and to stop managing servers.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Run each job as an AWS Lambda function with the maximum timeout and memory",
+        "explanation": "Lambda functions time out after at most 15 minutes, so jobs of 30 to 50 minutes cannot finish."
+      },
+      {
+        "key": "B",
+        "text": "Have an EventBridge rule on the S3 event start an Amazon ECS task on AWS Fargate for each job"
+      },
+      {
+        "key": "C",
+        "text": "Keep the EC2 instance and cover it with a 1-year Compute Savings Plan",
+        "explanation": "A Savings Plan discounts the instance, but the company still pays for the idle hours and manages the server."
+      },
+      {
+        "key": "D",
+        "text": "Run the jobs on an Amazon EKS cluster whose managed node group keeps a minimum of one node",
+        "explanation": "The node runs all day and the EKS control plane bills every hour, so idle time is still paid for."
+      }
+    ],
+    "explanation": "With AWS Fargate, ECS bills for the vCPU and memory a task uses from image pull until it stops, with no servers to manage. Starting one task per S3 event through EventBridge means paying only while a job runs. Lambda caps runs at 15 minutes, a Savings Plan still pays for idle hours, and an EKS node group with a minimum node runs all day. Read more: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d4-45",
+    "categoryKey": "cost-optimized",
+    "conceptId": "ec2-purchasing-options",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company runs a large, fault-tolerant batch workload on Spot Instances through an EC2 Fleet. The fleet requests a single instance type with the lowest-price allocation strategy, and interruptions are now so frequent that jobs restart many times and finish late. The company wants fewer interruptions while keeping most of the Spot savings.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the fleet to On-Demand Instances backed by On-Demand Capacity Reservations",
+        "explanation": "On-Demand capacity ends interruptions but gives up the Spot discount entirely."
+      },
+      {
+        "key": "B",
+        "text": "Keep the single instance type and set a higher maximum price for the Spot requests",
+        "explanation": "Most interruptions happen because EC2 needs the capacity back, which a higher maximum price does not prevent."
+      },
+      {
+        "key": "C",
+        "text": "Allow many instance types across Availability Zones and use the price-capacity-optimized strategy"
+      },
+      {
+        "key": "D",
+        "text": "Launch the fleet in one Availability Zone inside a cluster placement group",
+        "explanation": "Narrowing to one zone shrinks the capacity pools to choose from, which makes interruptions more likely."
+      }
+    ],
+    "explanation": "Spot interruptions mostly come from EC2 reclaiming capacity in a pool. Being flexible across many instance types and Availability Zones gives the fleet more pools, and the price-capacity-optimized allocation strategy picks pools with the most spare capacity at a low price, so interruptions drop. On-Demand loses the discount, a higher maximum price does not stop capacity interruptions, and one zone means fewer pools. Read more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d4-46",
+    "categoryKey": "cost-optimized",
+    "conceptId": "ec2-purchasing-options",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company has five standalone AWS accounts that are each billed separately. Account A bought 3-year Reserved Instances for 20 m5.large instances in one Region, but its workload shrank and half of them go unused. Account B runs 10 m5.large On-Demand instances in the same Region. The company wants to use the reservations it already pays for and combine usage for volume pricing.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Join the accounts to an organization in AWS Organizations with consolidated billing and RI sharing on"
+      },
+      {
+        "key": "B",
+        "text": "Buy 10 Reserved Instances in account B for its m5.large instances",
+        "explanation": "Buying more reservations adds a commitment while account A keeps paying for unused ones."
+      },
+      {
+        "key": "C",
+        "text": "Sell account A's unused Reserved Instances on the Reserved Instance Marketplace",
+        "explanation": "Selling recovers part of the cost, but account B keeps paying On-Demand rates and the bills stay separate."
+      },
+      {
+        "key": "D",
+        "text": "Modify account A's Reserved Instances to another instance size within the same family",
+        "explanation": "Modifying size changes how the reservation applies inside account A; it cannot move it to account B."
+      }
+    ],
+    "explanation": "Under consolidated billing in AWS Organizations, the accounts share one bill: usage is combined for volume pricing tiers, and Reserved Instance and Savings Plans discounts apply to matching usage in any member account unless sharing is turned off. Account A's unused reservations then cover account B's instances. New reservations add commitment, selling leaves B on On-Demand, and modifications stay in the owning account. Read more: https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/consolidated-billing.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/consolidated-billing.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.2",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d4-47",
+    "categoryKey": "cost-optimized",
+    "conceptId": "database-cost",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "An Amazon RDS for PostgreSQL production database has automated backups turned off. Instead, an AWS Lambda function creates a manual snapshot every hour and deletes snapshots after 30 days. The company must be able to restore to any point in the last 30 days with at most 15 minutes of data loss, and it wants to cut backup storage and maintenance.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Change the Lambda function to take a manual snapshot every 15 minutes",
+        "explanation": "Four times as many snapshots raise storage and API work, and a restore still lands only on snapshot times."
+      },
+      {
+        "key": "B",
+        "text": "Replace the Lambda function with an automated AWS Backup plan of hourly snapshots kept 30 days",
+        "explanation": "Hourly snapshots allow up to an hour of data loss, which misses the 15-minute requirement."
+      },
+      {
+        "key": "C",
+        "text": "Add a read replica in another Availability Zone and keep it as the recovery copy",
+        "explanation": "A replica copies mistakes and deletions immediately, so it cannot restore to an earlier point."
+      },
+      {
+        "key": "D",
+        "text": "Turn on automated backups with 30-day retention and remove the hourly snapshot function"
+      }
+    ],
+    "explanation": "RDS automated backups take daily snapshots and upload transaction logs every five minutes, so the instance can be restored to any second within the retention period (up to 35 days), usually to within five minutes of now. That meets a 15-minute recovery point with no function to maintain. More frequent manual snapshots cost more, hourly backups miss the requirement, and a replica is not a point-in-time backup. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d4-48",
+    "categoryKey": "cost-optimized",
+    "conceptId": "database-migration",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company runs Oracle Database Enterprise Edition on Amazon EC2, and its licenses are up for renewal. The application uses standard SQL and a few stored procedures. The company wants to remove its commercial license costs by moving to Amazon Aurora PostgreSQL with minimal downtime.\n\nWhich TWO steps should be part of the migration? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the database to Amazon RDS for Oracle using the License Included model",
+        "explanation": "License Included bundles the Oracle license into the hourly price, so the license cost remains."
+      },
+      {
+        "key": "B",
+        "text": "Convert the schema and stored procedures to PostgreSQL with AWS DMS Schema Conversion"
+      },
+      {
+        "key": "C",
+        "text": "Export the data with Oracle Data Pump and import the dump files into Aurora PostgreSQL",
+        "explanation": "Data Pump dump files can be imported only into Oracle, and an export and import means a long outage."
+      },
+      {
+        "key": "D",
+        "text": "Create an Aurora PostgreSQL read replica of the Oracle database and promote it at cutover",
+        "explanation": "Read replicas work within one engine; Aurora cannot replicate from an Oracle source."
+      },
+      {
+        "key": "E",
+        "text": "Migrate the data with an AWS DMS task that runs a full load followed by change data capture"
+      }
+    ],
+    "explanation": "A heterogeneous migration needs two parts. DMS Schema Conversion converts the Oracle schema and code objects such as stored procedures to PostgreSQL and flags what it cannot convert. An AWS DMS task then copies the data with a full load and keeps it in sync with change data capture until a short cutover. RDS for Oracle keeps the license cost, Data Pump targets Oracle only, and replicas cannot cross engines. Read more: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_SchemaConversion.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_SchemaConversion.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKeys": [
+      "B",
+      "E"
+    ]
+  },
+  {
+    "id": "aws-saa-hard-d4-49",
+    "categoryKey": "cost-optimized",
+    "conceptId": "rds-availability",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A serverless API uses AWS Lambda functions that query an Amazon RDS for MySQL instance. During traffic spikes, thousands of concurrent function instances open their own connections, the database reaches its connection limit, and its memory fills up. CPU stays below 30%. The team is about to double the instance class only to allow more connections.\n\nWhich solution is the MOST cost-effective?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Move the database to the instance class twice the size, as planned",
+        "explanation": "The larger class adds compute and cost that a CPU-light workload does not need."
+      },
+      {
+        "key": "B",
+        "text": "Put Amazon RDS Proxy in front of the database to pool and share connections"
+      },
+      {
+        "key": "C",
+        "text": "Add a read replica and point half of the functions at it",
+        "explanation": "A replica is a second full instance, and functions that write still need the primary."
+      },
+      {
+        "key": "D",
+        "text": "Raise max_connections in the DB parameter group above the class default",
+        "explanation": "Every connection uses memory, so allowing more of them on the same instance makes the memory pressure worse."
+      }
+    ],
+    "explanation": "RDS Proxy keeps a pool of database connections and shares them among many function invocations, so thousands of short-lived clients need only a small number of database connections. The existing instance keeps serving the CPU-light workload. A bigger class pays for unused compute, a replica adds an instance without fixing writes, and raising max_connections adds memory pressure. Read more: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d4-50",
+    "categoryKey": "cost-optimized",
+    "conceptId": "dynamodb-cost",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A DynamoDB table in provisioned capacity mode serves a product catalog. Every read is a strongly consistent GetItem for an item of about 3 KB, at a steady 20,000 reads per second, and read capacity is the table's largest cost. Product details change a few times a day, and readers may see an update up to a second late.\n\nWhich change lowers the read cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Switch the table to on-demand capacity mode",
+        "explanation": "For steady, predictable traffic, on-demand costs more per read than provisioned capacity."
+      },
+      {
+        "key": "B",
+        "text": "Switch the table to the DynamoDB Standard-IA table class",
+        "explanation": "Standard-IA lowers storage price but raises the price of reads, the table's largest cost."
+      },
+      {
+        "key": "C",
+        "text": "Switch the reads to eventually consistent and halve the read capacity"
+      },
+      {
+        "key": "D",
+        "text": "Compress each item to under 1 KB before writing it",
+        "explanation": "Read capacity is counted in 4 KB steps, so a 3 KB item and a 1 KB item each cost one read unit."
+      }
+    ],
+    "explanation": "A strongly consistent read of an item up to 4 KB uses one read capacity unit, and an eventually consistent read uses half a unit. Because readers can tolerate an update a second late, eventually consistent reads halve the capacity the table needs. On-demand costs more for steady traffic, Standard-IA raises read prices, and compression does not cross a 4 KB boundary. Read more: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/read-write-operations.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/read-write-operations.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.3",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-hard-d4-51",
+    "categoryKey": "cost-optimized",
+    "conceptId": "nat-gateways",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A production VPC has private subnets in three Availability Zones, and all of them route internet-bound traffic to one NAT gateway in the first zone. Instances in the other two zones send several terabytes a month through it to a partner's internet API. Cost reports show high inter-AZ data transfer, and a failure of the first zone would cut every zone off.\n\nWhich solution meets these requirements MOST cost-effectively?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Replace the NAT gateway with a larger NAT instance in the first zone",
+        "explanation": "Traffic from the other zones still crosses zones, the single point of failure remains, and the instance is yours to run."
+      },
+      {
+        "key": "B",
+        "text": "Add a gateway VPC endpoint to the private subnets' route tables",
+        "explanation": "Gateway endpoints reach only S3 and DynamoDB, not a partner's API on the internet."
+      },
+      {
+        "key": "C",
+        "text": "Move all the instances into the first Availability Zone",
+        "explanation": "Packing production into one zone ends cross-zone traffic but leaves the whole workload exposed to one zone failure."
+      },
+      {
+        "key": "D",
+        "text": "Add a NAT gateway in each zone and route each zone's subnets to their own"
+      }
+    ],
+    "explanation": "A NAT gateway lives in one Availability Zone. Giving each zone its own NAT gateway and routing each zone's private subnets to it keeps traffic inside the zone, which removes the cross-zone data transfer charges, and a zone failure affects only that zone. The extra hourly charges are small next to terabytes of cross-zone transfer. A NAT instance keeps both problems, a gateway endpoint cannot reach the partner, and one zone loses resilience. Read more: https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-hard-d4-52",
+    "categoryKey": "cost-optimized",
+    "conceptId": "hybrid-connectivity",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company sends about 200 TB a month from its data center to AWS and pulls about 150 TB of results back each month, over a Site-to-Site VPN on the internet. Data transfer out is now the biggest line on its AWS bill, and the VPN tunnels limit throughput. The traffic is steady and expected to grow.\n\nWhich solution reduces cost the MOST?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Set up an AWS Direct Connect connection and send the traffic over it"
+      },
+      {
+        "key": "B",
+        "text": "Add VPN tunnels on a transit gateway with ECMP to spread the traffic across them",
+        "explanation": "More tunnels add throughput, but transfer out is still billed at internet rates, plus transit gateway processing."
+      },
+      {
+        "key": "C",
+        "text": "Serve the results to the data center with S3 Transfer Acceleration",
+        "explanation": "Transfer Acceleration adds a per-GB fee on top of normal data transfer out."
+      },
+      {
+        "key": "D",
+        "text": "Move the AWS workloads to the Region with the lowest data transfer out price",
+        "explanation": "Rates differ little between Regions, and the traffic would still leave over the internet at internet rates."
+      }
+    ],
+    "explanation": "Data transfer out over AWS Direct Connect is billed at a lower per-GB rate than data transfer out to the internet, and a dedicated or hosted connection gives steady, high throughput. At 150 TB a month out, the saving outweighs the port hours. Inbound data is free either way. Extra VPN tunnels keep internet rates, Transfer Acceleration adds a fee, and other Regions still bill internet rates. Read more: https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-hard-d4-53",
+    "categoryKey": "cost-optimized",
+    "conceptId": "api-gateway",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company exposes a public REST API through Amazon API Gateway, backed by AWS Lambda and DynamoDB on-demand. A few partners call it in tight loops, which drives up Lambda and DynamoDB costs. Each partner must be held to 50 requests per second and 1 million requests per month, and calls over those limits must be rejected before they reach the backend.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Set reserved concurrency on the Lambda function to cap how many requests run at once",
+        "explanation": "One concurrency cap is shared by every caller, so a noisy partner can still starve the others, and it sets no monthly quota."
+      },
+      {
+        "key": "B",
+        "text": "Create a usage plan with throttling and a monthly quota, and give each partner an API key on it"
+      },
+      {
+        "key": "C",
+        "text": "Add an AWS WAF rate-based rule that blocks any IP address over 50 requests per second",
+        "explanation": "Rate-based rules count requests over windows of a few minutes, so they cannot hold each partner to a monthly quota."
+      },
+      {
+        "key": "D",
+        "text": "Turn on API caching for the stage so repeated requests skip the backend",
+        "explanation": "Caching only absorbs identical requests and adds an hourly cache charge; it does not limit any partner."
+      }
+    ],
+    "explanation": "API Gateway usage plans set a throttling rate and burst plus a daily, weekly or monthly request quota, applied to each API key associated with the plan. Requests over the limits are rejected with HTTP 429 at API Gateway, before Lambda and DynamoDB are invoked. Reserved concurrency is one shared cap, WAF rate-based rules have no monthly quota, and caching does not limit callers. Read more: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-usage-plans.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-usage-plans.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-hard-d4-54",
+    "categoryKey": "cost-optimized",
+    "conceptId": "data-transfer-costs",
+    "level": "hard",
+    "difficulty": 4,
+    "prompt": "A company's EC2-Other cost tripled over two months. The finance team suspects data transfer but is unsure which kind: between Availability Zones, between Regions, through NAT gateways, or out to the internet. The company wants to find which data transfer is growing with the LEAST effort.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on VPC Flow Logs for every VPC and analyze them with CloudWatch Logs Insights",
+        "explanation": "Flow logs show traffic flows, not their cost, and they take setup and add log charges before they answer anything."
+      },
+      {
+        "key": "B",
+        "text": "Create an AWS Budgets cost budget for EC2-Other with an alert at the current spend",
+        "explanation": "A budget alerts when spending crosses a threshold; it does not break the cost down by kind of transfer."
+      },
+      {
+        "key": "C",
+        "text": "In AWS Cost Explorer, filter on EC2-Other and group the costs by usage type"
+      },
+      {
+        "key": "D",
+        "text": "Run the AWS Trusted Advisor cost optimization checks for the account",
+        "explanation": "Trusted Advisor flags idle and underused resources; it does not break down data transfer by type."
+      }
+    ],
+    "explanation": "Cost Explorer can filter to the EC2-Other charges and group them by usage type, which separates inter-AZ transfer (DataTransfer-Regional-Bytes), NAT gateway processing (NatGateway-Bytes), inter-Region transfer and internet transfer out, month by month. Flow logs need setup and show traffic, not cost, a budget only alerts, and Trusted Advisor does not break transfer down. Read more: https://docs.aws.amazon.com/cost-management/latest/userguide/ce-filtering.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-filtering.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-4",
+      "task-4.4",
+      "hard",
+      "scenario"
+    ],
+    "correctKey": "C"
   }
 ]

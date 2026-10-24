@@ -216,7 +216,7 @@
       "Leaving NLB cross-zone load balancing off when targets are spread unevenly across zones.",
       "Relying on load balancer health checks while the Auto Scaling group still uses only EC2 status checks."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.4"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.4", "domain-4", "task-4.2"]
   },
   {
     "id": "ec2-auto-scaling",
@@ -238,7 +238,7 @@
       "Treating a read replica as automatic failover.",
       "Raising max_connections to absorb Lambda's scale instead of adding RDS Proxy."
     ],
-    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.3"]
+    "tags": ["domain-2", "task-2.1", "task-2.2", "domain-3", "task-3.3", "domain-4", "task-4.3"]
   },
   {
     "id": "aurora",
@@ -326,7 +326,7 @@
       "Moving Kubernetes workloads to ECS and rewriting every manifest.",
       "Using AWS Batch for a long-running service behind a load balancer."
     ],
-    "tags": ["domain-2", "task-2.1", "domain-3", "task-3.2"]
+    "tags": ["domain-2", "task-2.1", "domain-3", "task-3.2", "domain-4", "task-4.2"]
   },
   {
     "id": "serverless-lambda",
@@ -348,7 +348,7 @@
       "Caching without the parameters that change the response in the cache key.",
       "Treating API keys as authentication; they identify clients for usage plans."
     ],
-    "tags": ["domain-2", "task-2.1"]
+    "tags": ["domain-2", "task-2.1", "domain-4", "task-4.4"]
   },
   {
     "id": "caching",
@@ -469,7 +469,7 @@
       "Running only a full load when the source keeps taking writes until cutover.",
       "Using an engine's native dump tools across different engines."
     ],
-    "tags": ["domain-3", "task-3.3"]
+    "tags": ["domain-3", "task-3.3", "domain-4", "task-4.3"]
   },
   {
     "id": "vpc-design",
