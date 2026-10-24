@@ -4399,6 +4399,380 @@
     "correctKey": "A"
   },
   {
+    "id": "aws-saa-easy-d2-42",
+    "categoryKey": "resilient",
+    "conceptId": "data-durability",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company stores engineering drawings in an Amazon S3 bucket in eu-west-1. A new policy requires a copy of each new object in a second AWS Region, kept up to date automatically, so the drawings stay available if eu-west-1 becomes unavailable.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Turn on S3 Same-Region Replication to a second bucket in eu-west-1",
+        "explanation": "Same-Region Replication keeps the copy in eu-west-1, so it is lost along with the Region."
+      },
+      {
+        "key": "B",
+        "text": "Rely on the S3 Standard storage class, which stores objects across several Availability Zones",
+        "explanation": "S3 Standard spreads data across Availability Zones within one Region; it doesn't protect against losing the Region."
+      },
+      {
+        "key": "C",
+        "text": "Turn on S3 Versioning and S3 Cross-Region Replication to a bucket in another Region"
+      },
+      {
+        "key": "D",
+        "text": "Create an AWS Backup plan that backs up the bucket nightly to a vault in eu-west-1",
+        "explanation": "Nightly backups lag up to a day behind, and a vault in the same Region fails with it."
+      }
+    ],
+    "explanation": "Cross-Region Replication copies new objects asynchronously to a bucket in a different Region and needs Versioning on both buckets, so a current copy survives the loss of eu-west-1. Same-Region Replication and S3 Standard's multi-AZ storage both stay inside the Region, and nightly backups in the same Region are neither current nor out of the Region. Read more: https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-easy-d2-43",
+    "categoryKey": "resilient",
+    "conceptId": "multi-az-design",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "An application runs on four Amazon EC2 instances in an Auto Scaling group behind an Application Load Balancer. All four instances run in subnets in one Availability Zone, and during an outage of that zone last month the application was down for two hours.\n\nWhich change BEST improves the application's availability?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Replace the instances with a larger instance type in the same subnets",
+        "explanation": "Bigger instances still sit in the one Availability Zone, so a zone outage takes them all down."
+      },
+      {
+        "key": "B",
+        "text": "Launch the instances in a spread placement group within the Availability Zone",
+        "explanation": "A spread placement group separates instances onto different racks, but they all stay in the failing zone."
+      },
+      {
+        "key": "C",
+        "text": "Take hourly EBS snapshots of each instance so it can be relaunched after an outage",
+        "explanation": "Snapshots speed up a rebuild after the outage; the application is still down while the zone is."
+      },
+      {
+        "key": "D",
+        "text": "Add subnets in two more Availability Zones to the group and enable those zones on the load balancer"
+      }
+    ],
+    "explanation": "With subnets in several Availability Zones, the Auto Scaling group balances instances across them and launches replacements in healthy zones, and the load balancer routes only to healthy targets in its enabled zones, so losing one zone leaves the application running. Larger instances and a spread placement group stay inside the failing zone, and snapshots shorten recovery without avoiding the outage. Read more: https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-availability-zone-balanced.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-availability-zone-balanced.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-easy-d2-44",
+    "categoryKey": "resilient",
+    "conceptId": "multi-az-design",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A VPC has private subnets in three Availability Zones. All of them send internet-bound traffic through one zonal NAT gateway in the public subnet of AZ A. The company wants instances in AZ B and AZ C to keep outbound internet access if AZ A fails, and it wants to keep using zonal NAT gateways.\n\nWhich TWO actions should a solutions architect take? (Select TWO.)",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add a second Elastic IP address to the existing NAT gateway",
+        "explanation": "More addresses give the gateway more connections, but it still lives only in AZ A."
+      },
+      {
+        "key": "B",
+        "text": "Create a NAT gateway in a public subnet in each Availability Zone"
+      },
+      {
+        "key": "C",
+        "text": "Attach an egress-only internet gateway and route the private subnets' IPv4 traffic to it",
+        "explanation": "An egress-only internet gateway carries IPv6 traffic only, so IPv4 instances get no outbound path through it."
+      },
+      {
+        "key": "D",
+        "text": "Give each zone's private subnets a route table that points to the NAT gateway in the same zone"
+      },
+      {
+        "key": "E",
+        "text": "Replace the NAT gateway with a NAT instance managed by an Auto Scaling group of size one",
+        "explanation": "A replacement NAT instance gets a new ID, and the route tables keep pointing at the old one until someone updates them."
+      }
+    ],
+    "explanation": "A zonal NAT gateway is redundant only within its own Availability Zone, so a zone-independent design puts a NAT gateway in each zone and gives each zone's private subnets a route table that uses the local gateway. Extra addresses leave the gateway in AZ A, an egress-only internet gateway carries only IPv6, and a NAT instance replaced by Auto Scaling comes back with an ID the route tables don't point to. A regional NAT gateway, which expands across zones by itself, is the alternative for a team willing to change gateway type. Read more: https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKeys": [
+      "B",
+      "D"
+    ]
+  },
+  {
+    "id": "aws-saa-easy-d2-45",
+    "categoryKey": "resilient",
+    "conceptId": "dr-strategies",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company's internal wiki runs on one Amazon EC2 instance with an Amazon RDS database in us-east-1. If the Region fails, the business accepts losing up to 24 hours of changes and waiting up to 24 hours for the wiki to come back. The company wants the lowest-cost disaster recovery strategy that meets these objectives.\n\nWhich strategy should a solutions architect choose?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Backup and restore, copying daily backups to a second Region and rebuilding from them"
+      },
+      {
+        "key": "B",
+        "text": "Pilot light, replicating the database continuously to a second Region",
+        "explanation": "Continuous replication buys an RPO of seconds and keeps a database running in the second Region, which a 24-hour RPO doesn't need."
+      },
+      {
+        "key": "C",
+        "text": "Warm standby, keeping a scaled-down copy of the wiki running in a second Region",
+        "explanation": "A running copy reaches an RTO of minutes and costs compute all the time, far beyond a 24-hour objective."
+      },
+      {
+        "key": "D",
+        "text": "Multi-site active/active, serving users from both Regions at once",
+        "explanation": "Running full capacity in two Regions is the most expensive strategy and meets objectives far tighter than 24 hours."
+      }
+    ],
+    "explanation": "With an RPO and RTO of 24 hours, backup and restore is enough: copy daily backups to another Region and rebuild there, ideally with infrastructure as code, after a disaster, paying only for backup storage and copies. Pilot light, warm standby and active/active keep resources running in the second Region to reach RPOs and RTOs of minutes or less, which this wiki doesn't need. Read more: https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "A"
+  },
+  {
+    "id": "aws-saa-easy-d2-46",
+    "categoryKey": "resilient",
+    "conceptId": "route53-routing",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company runs the same stateless API behind Application Load Balancers in us-east-1 and ap-southeast-2. Both Regions should serve traffic at all times, each user should reach the Region that gives them the lowest latency, and if one Region's API becomes unhealthy its users should go to the other Region.\n\nWhich Amazon Route 53 configuration meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Failover records with us-east-1 as the primary and ap-southeast-2 as the secondary",
+        "explanation": "Failover routing sends everyone to the primary while it is healthy, so ap-southeast-2 sits idle."
+      },
+      {
+        "key": "B",
+        "text": "Geolocation records that map each continent to one of the two Regions",
+        "explanation": "Geolocation routes by where the user is rather than by measured latency, so a user isn't sent to the faster Region."
+      },
+      {
+        "key": "C",
+        "text": "Weighted records that give both load balancers a weight of 50",
+        "explanation": "Equal weights split users evenly between the Regions regardless of which one is closer to them."
+      },
+      {
+        "key": "D",
+        "text": "Latency records for both load balancers, with health checks evaluated on each record"
+      }
+    ],
+    "explanation": "Latency-based records send each user to the Region with the lowest latency for them, so both Regions serve traffic, and with health checks (or Evaluate Target Health on alias records) Route 53 stops returning an unhealthy Region's record, so its users go to the other. Failover routing keeps the second Region idle, geolocation routes by location rather than latency, and equal weights ignore where users are. Read more: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-easy-d2-47",
+    "categoryKey": "resilient",
+    "conceptId": "workload-visibility",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A request to an online store passes through Amazon API Gateway, three AWS Lambda functions and an Amazon DynamoDB table. Some checkout requests take 8 seconds instead of 300 ms, and the team can't tell which component adds the delay. It wants an end-to-end view of individual requests showing the time spent in each service.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Create a CloudWatch dashboard with the Duration metric of each Lambda function",
+        "explanation": "Duration shows each function's statistics in aggregate, so it can't tie one slow checkout to the call that took the time."
+      },
+      {
+        "key": "B",
+        "text": "Turn on AWS X-Ray active tracing for API Gateway and the functions and examine the trace map"
+      },
+      {
+        "key": "C",
+        "text": "Turn on AWS CloudTrail data events for the Lambda functions and the DynamoDB table",
+        "explanation": "CloudTrail records who called which API and when, not how long each hop of a request took."
+      },
+      {
+        "key": "D",
+        "text": "Publish VPC Flow Logs for the functions' VPC to Amazon CloudWatch Logs",
+        "explanation": "Flow logs record network connections and bytes, with no view of a request across services."
+      }
+    ],
+    "explanation": "X-Ray records a trace for each request as it passes through API Gateway, Lambda and the SDK calls to DynamoDB, and the trace map and timeline show how long each service took and where errors occur. Duration metrics are aggregates, CloudTrail records API activity for auditing, and Flow Logs record network flows with no request timing. Read more: https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
+    "id": "aws-saa-easy-d2-48",
+    "categoryKey": "resilient",
+    "conceptId": "data-durability",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A company runs a self-managed application on Amazon EC2 with its data on Amazon EBS volumes. It wants a daily snapshot of each volume tagged Backup=daily, kept for 14 days and then deleted, without writing or running any scripts.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "A cron job on each instance that calls the EC2 CreateSnapshot API and prunes old snapshots",
+        "explanation": "A cron job is a script the company would have to write, run and maintain on every instance."
+      },
+      {
+        "key": "B",
+        "text": "Amazon EBS Multi-Attach, keeping each volume attached to a second standby instance",
+        "explanation": "Multi-Attach shares one volume between instances; it makes no point-in-time copy to restore from."
+      },
+      {
+        "key": "C",
+        "text": "An S3 Lifecycle rule that moves the volumes' snapshots to S3 Glacier after 14 days",
+        "explanation": "EBS snapshots aren't objects in a bucket you own, so S3 Lifecycle rules can't create or expire them."
+      },
+      {
+        "key": "D",
+        "text": "An Amazon Data Lifecycle Manager policy on the tag with a daily schedule and 14-day retention"
+      }
+    ],
+    "explanation": "Data Lifecycle Manager policies select EBS volumes or instances by tag, create snapshots on a schedule and delete them once they pass the retention age or count, with no scripts to maintain. A cron job is the script the company wants to avoid, Multi-Attach shares a volume rather than copying it, and S3 Lifecycle rules can't see EBS snapshots. Read more: https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-lifecycle.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/ebs/latest/userguide/snapshot-lifecycle.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "D"
+  },
+  {
+    "id": "aws-saa-easy-d2-49",
+    "categoryKey": "resilient",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A support center wants to know whether each of its 50,000 monthly customer emails is positive, negative, neutral or mixed, so it can route unhappy customers to senior staff. It has no machine learning experts and wants a managed service that works on the text without training a model.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Convert each email to audio with Amazon Polly and score the tone of the audio",
+        "explanation": "Polly turns text into speech; it doesn't judge sentiment, and converting text to audio adds a step for nothing."
+      },
+      {
+        "key": "B",
+        "text": "Run each email through Amazon Transcribe and use the sentiment in its output",
+        "explanation": "Transcribe works on audio, and its sentiment scores come from call analytics on speech; the emails are already text."
+      },
+      {
+        "key": "C",
+        "text": "Send each email's text to the sentiment analysis API of Amazon Comprehend"
+      },
+      {
+        "key": "D",
+        "text": "Train a sentiment classifier in Amazon SageMaker AI on labeled past emails",
+        "explanation": "A custom model needs labeled data and someone with ML skills to train and host it, which the center lacks."
+      }
+    ],
+    "explanation": "Comprehend's sentiment analysis returns POSITIVE, NEGATIVE, NEUTRAL or MIXED for a block of text using a pretrained model, singly or in batch jobs, so no ML expertise or training is needed. Polly turns text into speech, Transcribe turns speech into text, and a SageMaker model needs labeled data and someone to build it. Read more: https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "C"
+  },
+  {
+    "id": "aws-saa-easy-d2-50",
+    "categoryKey": "resilient",
+    "level": "easy",
+    "difficulty": 2,
+    "prompt": "A legacy licensing server runs on a single Amazon EC2 instance. Its license is bound to the instance's private IP address, and the vendor's software runs on only one server at a time. The company wants the instance to come back by itself, with the same private IP address and instance ID, if the underlying host has a hardware problem.\n\nWhich solution meets these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Put the instance in an Auto Scaling group with a minimum and maximum size of one",
+        "explanation": "Auto Scaling replaces a failed instance with a new one that has a new instance ID and private IP address."
+      },
+      {
+        "key": "B",
+        "text": "Configure a CloudWatch alarm on the system status check that runs the EC2 recover action"
+      },
+      {
+        "key": "C",
+        "text": "Place the instance behind a Network Load Balancer with health checks on the license port",
+        "explanation": "A load balancer stops sending traffic to an unhealthy target; it doesn't bring the instance back."
+      },
+      {
+        "key": "D",
+        "text": "Configure a CloudWatch alarm on the instance status check that runs the EC2 reboot action",
+        "explanation": "A reboot keeps the instance on the same faulty host, so a hardware problem remains."
+      }
+    ],
+    "explanation": "Instance recovery moves the instance to new hardware while keeping its instance ID, private IP addresses, Elastic IP addresses and metadata; many instance types recover automatically, and a CloudWatch alarm on the system status check with the recover action makes it explicit. Auto Scaling replaces the instance with a new ID and IP, a load balancer only stops routing to it, and a reboot stays on the faulty host. Read more: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html",
+    "source": "original",
+    "sourceRef": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html",
+    "reviewStatus": "draft",
+    "tags": [
+      "saa-c03",
+      "domain-2",
+      "task-2.2",
+      "easy",
+      "scenario"
+    ],
+    "correctKey": "B"
+  },
+  {
     "id": "aws-saa-easy-d3-1",
     "categoryKey": "high-performing",
     "level": "easy",
