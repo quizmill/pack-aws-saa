@@ -2,9 +2,10 @@
 
 Practice for the **AWS Certified Solutions Architect – Associate (SAA-C03)**
 exam (65 questions, 130 min, pass 720/1000, scaled). This pack holds
-**160 original exam-style scenarios** across the four exam domains (65 in
-each of Design Secure Architectures and Design Resilient Architectures, 15 in
-each of the others), spread over the
+**210 original exam-style scenarios** across the four exam domains (65 in
+each of Design Secure Architectures, Design Resilient Architectures and
+Design High-Performing Architectures, 15 in Design Cost-Optimized
+Architectures), spread over the
 Easy, Hard and Very hard tiers.
 
 > **Unofficial.** Not affiliated with or endorsed by AWS. This is community
@@ -22,8 +23,8 @@ ends with the same link. See [`NOTICE.md`](NOTICE.md).
 
 The questions follow the exam's form: a situation with its constraints
 ("LEAST operational overhead", "MOST cost-effective"), four full-sentence
-options with one best answer, or five options for "Select TWO" (17 of the
-160). Every wrong option is a real AWS feature misapplied or a near-miss that
+options with one best answer, or five options for "Select TWO" (20 of the
+210). Every wrong option is a real AWS feature misapplied or a near-miss that
 fails one constraint, carries a one-sentence note saying why it fails, and
 the question's explanation covers the key and the tempting distractors.
 
@@ -38,31 +39,36 @@ real exam. Each question is also tagged with the guide's task statement
 | --- | ---: | --- |
 | Design Secure Architectures | 30% | 65 (25 / 25 / 15) |
 | Design Resilient Architectures | 26% | 65 (25 / 25 / 15) |
-| Design High-Performing Architectures | 24% | 15 (4 / 7 / 4) |
+| Design High-Performing Architectures | 24% | 65 (25 / 25 / 15) |
 | Design Cost-Optimized Architectures | 20% | 15 (4 / 7 / 4) |
 
 The manifest's `exam` block switches on the timed exam: it deals from the
 Very hard tier at the real exam's pace (130 minutes for 65 questions,
-pro-rated to the 38 Very hard questions available).
+pro-rated to the 49 Very hard questions available).
 
 `concepts.json` holds short concept cards for the services Domain 1 keeps
 returning to (IAM roles, SCPs, KMS, VPC endpoints, WAF and Shield, …).
 Domain 1 questions link one by `conceptId`, and the app shows it after a
 wrong answer. Domain 2 has its own cards (SQS, load balancing, Auto Scaling,
 RDS and Aurora availability, DR strategies, Route 53 routing, …), linked the
-same way.
+same way. Domain 3 adds cards for S3, EBS and file storage performance,
+instance choice, DynamoDB, database migrations, network topology, Kinesis
+and the Glue/Athena/Lake Formation data lake, and reuses the Domain 2 cards
+where they fit.
 
 ## Known limitations
 
-- **Growing bank.** Design Secure Architectures and Design Resilient
-  Architectures are authored out to 65 questions each, covering all of
-  their task statements; the other two domains are still 15-question seeds,
-  so the mix is not yet at blueprint weight and some of their task
-  statements have one or two questions.
+- **Growing bank.** Design Secure Architectures, Design Resilient
+  Architectures and Design High-Performing Architectures are authored out
+  to 65 questions each, covering all of their task statements; Design
+  Cost-Optimized Architectures is still a 15-question seed, so the mix is
+  not yet at blueprint weight and some of its task statements have one or
+  two questions.
 - **Draft.** No human review yet. An automated blind solve (answering
   without the keys) agreed with all keys of the first 60 questions; two
   stems it flagged as loose were tightened. A second blind solve agreed
-  with all 50 keys added to Domain 2.
+  with all 50 keys added to Domain 2, and a third with all 50 added to
+  Domain 3.
 
 ## Use it
 
