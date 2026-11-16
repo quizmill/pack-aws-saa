@@ -1,3 +1,5 @@
+> **This repo has moved.** The pack now lives in [quizmill/packs-aws](https://github.com/quizmill/packs-aws), directory [`aws-saa`](https://github.com/quizmill/packs-aws/tree/main/aws-saa), with its history. This repo is archived and frozen at its content of 2026-11-16.
+
 # pack-aws-saa — a quizmill learning pack
 
 Practice for the **AWS Certified Solutions Architect – Associate (SAA-C03)**
